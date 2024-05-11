@@ -50,6 +50,8 @@
 Module.symvers
 modules.order
 
+!.placeholder
+
 #
 # Top-level generic files
 #
@@ -169,4 +171,9 @@ debian/canonical-revoked-certs.pem
 debian/changelog
 debian/control
 debian/copyright
+debian/linux-doc/
+debian/linux-headers-5.15.0-57/
+debian/stamps/stamp-install-headers
+debian/stamps/stamp-prepare-indep
+debian/stamps/stamp-prepare-perarch
 scripts/ubuntu-retpoline-extract-one
