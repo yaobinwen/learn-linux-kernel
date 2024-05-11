@@ -5,9 +5,11 @@ comma = ,
 # The source package name will be the first token from $(DEBIAN)/changelog
 #
 src_pkg_name=$(shell sed -n '1s/^\(.*\) (.*).*$$/\1/p' $(DEBIAN)/changelog)
+$(info [ywen] $$src_pkg_name = ${src_pkg_name})
 
 # Get the series
 series=$(shell dpkg-parsechangelog -l$(DEBIAN)/changelog | sed -ne 's/^Distribution: *//p' | sed -e 's/-\(security\|updates\|proposed\)$$//')
+$(info [ywen] $$series = ${series})
 
 # Get some version info
 release := $(shell sed -n '1s/^$(src_pkg_name).*(\(.*\)-.*).*$$/\1/p' $(DEBIAN)/changelog)
@@ -20,16 +22,31 @@ endif
 
 prev_fullver ?= $(shell dpkg-parsechangelog -l$(DEBIAN)/changelog -o1 -c1 | sed -ne 's/^Version: *//p')
 
+$(info [ywen] $$release = ${release})
+$(info [ywen] $$revisions = ${revisions})
+$(info [ywen] $$revision = ${revision})
+$(info [ywen] $$prev_revisions = ${prev_revisions})
+$(info [ywen] $$prev_fullver = ${prev_fullver})
+
 # Get variants. Assume primary if debian/variants is not present.
 variants = --
+# NOTE(ywen): Call `wildcard` function to search for a file called `variants`
+# under `$(DEBIAN)` (which is `debian.master` here). If the search result is
+# not empty (i.e., the file `variants` is found), then assign its content to
+# the variable `variants`. Otherwise, keep the content of `variants` as the
+# string literal "--".
 ifneq (,$(wildcard $(DEBIAN)/variants))
 	variants := $(shell cat $(DEBIAN)/variants)
 endif
+$(info [ywen] $$variants = ${variants})
 
 # Get upstream version info
 upstream_version := $(shell sed -n 's/^VERSION = \(.*\)$$/\1/p' Makefile)
 upstream_patchlevel := $(shell sed -n 's/^PATCHLEVEL = \(.*\)$$/\1/p' Makefile)
 upstream_tag := "v$(upstream_version).$(upstream_patchlevel)"
+$(info [ywen] $$upstream_version = ${upstream_version})
+$(info [ywen] $$upstream_patchlevel = ${upstream_patchlevel})
+$(info [ywen] $$upstream_tag = ${upstream_tag})
 
 family=ubuntu
 
@@ -48,11 +65,16 @@ skipabi		= true
 skipmodule	= true
 skipretpoline	= true
 skipdbg		= true
+# NOTE(ywen): `.git/HEAD` assumes the current folder being the root folder of
+# the git repository that has the `.git` sub-folder. However, in this learning
+# repository, I put the source code under a folder one level deeper, so the
+# Makefile won't be able to find `.git/HEAD`. (But maybe I can hack it...)
 gitver=$(shell if test -f .git/HEAD; then cat .git/HEAD; else uuidgen; fi)
 gitverpre=$(shell echo $(gitver) | cut -b -3)
 gitverpost=$(shell echo $(gitver) | cut -b 38-40)
 abi_suffix = -$(gitverpre)$(gitverpost)
 endif
+$(info [ywen] $$abi_suffix = ${abi_suffix})
 
 ifneq ($(NOKERNLOG),)
 ubuntu_log_opts += --no-kern-log
@@ -63,6 +85,11 @@ endif
 
 # Get the kernels own extra version to be added to the release signature.
 raw_kernelversion=$(shell make kernelversion)
+
+$(info [ywen] $$ubuntu_log_opts = ${ubuntu_log_opts})
+$(info [ywen] $$raw_kernelversion = ${raw_kernelversion})
+
+$(error [ywen] Let's stop here so I can test the build process piece by piece)
 
 #
 # full_build -- are we doing a full buildd style build

@@ -7,7 +7,13 @@
 # Copyright (c) 2007 Ben Collins <bcollins@ubuntu.com>
 #
 
+# NOTE(ywen): Let's see where we are right now.
+$(info [ywen] pwd: $(shell pwd))
+
+# NOTE(ywen): `DEBIAN` is the environment variable `DEBIAN` defined in the file
+# `debian/debian.env`, so its value is `debian.master`.
 DEBIAN=$(shell awk -F= '($$1 == "DEBIAN") { print $$2 }' <debian/debian.env)
+$(info [ywen] $$DEBIAN = ${DEBIAN})
 
 # dpkg-buildpackage passes options that are incomptatible
 # with the kernel build.
