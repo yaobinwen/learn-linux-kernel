@@ -28,8 +28,12 @@ References:
   - 4.3 Build in one of the following ways:
     - 4.3.1 (Quicker build) `LANG=C fakeroot debian/rules binary-headers binary-generic binary-perarch`
     - 4.3.2 (Need linux-tools or lowlatency kernel) `LANG=C fakeroot debian/rules binary`
+      - The target `binary` is in `debian/rules`.
+      - Because the target `binary` depends on two sub-targets: `binary-indep` and `binary-arch`, one can start with `LANG=C fakeroot debian/rules binary-indep`.
 
 ## 2024-05-11 (Sat)
+
+### `make kernelversion`
 
 Today I started to work on building Ubuntu Jammy's source code.
 
@@ -52,3 +56,48 @@ vagrant@ywen-linux-lab:/lab/learn-linux-kernel/jammy$ make kernelversion
 [ywen] $SRCARCH = x86
 5.15.77
 ```
+
+### Caveat: Build target block may be longer
+
+Today I read the following build target in `rules.d/3-binary-indep.mk`:
+
+```makefile
+$(stampdir)/stamp-install-headers: $(stampdir)/stamp-prepare-indep
+	@echo Debug: $@
+	dh_testdir
+
+# NOTE(ywen): OK... So this whole `ifeq...endif` block still belongs to the
+# build target `$(stampdir)/stamp-install-headers`.
+ifeq ($(do_flavour_header_package),true)
+	install -d $(indep_hdrdir)
+	find . -path './debian' -prune -o -path './$(DEBIAN)' -prune \
+	  -o -path './include/*' -prune \
+	  -o -path './scripts/*' -prune -o -type f \
+	  \( -name 'Makefile*' -o -name 'Kconfig*' -o -name 'Kbuild*' -o \
+	     -name '*.sh' -o -name '*.pl' -o -name '*.lds' \) \
+	  -print | cpio -pd --preserve-modification-time $(indep_hdrdir)
+	cp -a scripts include $(indep_hdrdir)
+	(find arch -name include -type d -print | \
+		xargs -n1 -i: find : -type f) | \
+		cpio -pd --preserve-modification-time $(indep_hdrdir)
+endif
+	@touch $@
+```
+
+Because the `ifeq` statement starts from the beginning of the line, I thought it didn't belong to the build target `$(stampdir)/stamp-install-headers` until later I realized it did.
+
+## Next step
+
+As of 2024-05-11, running `LANG=C fakeroot debian/rules binary-indep` would result in the following error:
+
+```
+Debug: install-arch-headers
+dh_testdir
+dh_testroot
+dh_prep -plinux-libc-dev
+dh_prep: error: Requested unknown package linux-libc-dev via -p/--package, expected one of: linux-source-5.15.0 linux-headers-5.15.0-57 linux-tools-common linux-tools-5.15.0-57 linux-cloud-tools-common linux-cloud-tools-5.15.0-57 linux-tools-host
+dh_prep: error: unknown option or error during option parsing; aborting
+make: *** [debian/rules.d/2-binary-arch.mk:550: install-arch-headers] Error 255
+```
+
+TODO: I'll need to learn how to use `dh_prep`.
