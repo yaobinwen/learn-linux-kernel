@@ -1,3 +1,5 @@
+$(info [ywen] >>> (START of 0-common-vars.mk))
+
 # Used when you need to 'escape' a comma.
 comma = ,
 
@@ -89,8 +91,6 @@ raw_kernelversion=$(shell make kernelversion)
 $(info [ywen] $$ubuntu_log_opts = ${ubuntu_log_opts})
 $(info [ywen] $$raw_kernelversion = ${raw_kernelversion})
 
-$(error [ywen] Let's stop here so I can test the build process piece by piece)
-
 #
 # full_build -- are we doing a full buildd style build
 #
@@ -111,11 +111,15 @@ endif
 abinum		:= $(shell echo $(revision) | sed -r -e 's/([^\+~]*)\.[^\.]+(~.*)?(\+.*)?$$/\1/')$(abi_suffix)
 prev_abinum	:= $(shell echo $(prev_revision) | sed -r -e 's/([^\+~]*)\.[^\.]+(~.*)?(\+.*)?$$/\1/')$(abi_suffix)
 abi_release	:= $(release)-$(abinum)
+$(info [ywen] $$abinum = ${abinum})
+$(info [ywen] $$prev_abinum = ${prev_abinum})
+$(info [ywen] $$abi_release = ${abi_release})
 
 uploadnum	:= $(shell echo $(revision) | sed -r -e 's/[^\+~]*\.([^\.~]+(~.*)?(\+.*)?$$)/\1/')
 ifneq ($(full_build),false)
   uploadnum	:= $(uploadnum)-Ubuntu
 endif
+$(info [ywen] $$uploadnum = ${uploadnum})
 
 # XXX: linux-libc-dev got bumped to -803.N inadvertantly by a ti-omap4 upload
 #      shift our version higher for this package only.  Ensure this only
@@ -128,12 +132,20 @@ ifeq ($(release),2.6.35)
 libc_dev_version := -v$(release)-$(shell expr "$(abinum)" + 1000).$(raw_uploadnum)
 endif
 endif
+$(info [ywen] $$raw_uploadnum = ${raw_uploadnum})
+$(info [ywen] $$libc_dev_version = ${libc_dev_version})
 
 DEB_HOST_MULTIARCH = $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 DEB_HOST_GNU_TYPE  = $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE = $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_ARCH = $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_BUILD_ARCH = $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+
+$(info [ywen] $$DEB_HOST_MULTIARCH = ${DEB_HOST_MULTIARCH})
+$(info [ywen] $$DEB_HOST_GNU_TYPE = ${DEB_HOST_GNU_TYPE})
+$(info [ywen] $$DEB_BUILD_GNU_TYPE = ${DEB_BUILD_GNU_TYPE})
+$(info [ywen] $$DEB_HOST_ARCH = ${DEB_HOST_ARCH})
+$(info [ywen] $$DEB_BUILD_ARCH = ${DEB_BUILD_ARCH})
 
 #
 # Detect invocations of the form 'fakeroot debian/rules binary arch=armhf'
@@ -162,6 +174,14 @@ sharedconfdir	:= $(CURDIR)/debian.master/config
 builddir	:= $(CURDIR)/debian/build
 stampdir	:= $(CURDIR)/debian/stamps
 
+$(info [ywen] $$abidir = ${abidir})
+$(info [ywen] $$prev_abidir = ${prev_abidir})
+$(info [ywen] $$commonconfdir = ${commonconfdir})
+$(info [ywen] $$archconfdir = ${archconfdir})
+$(info [ywen] $$sharedconfdir = ${sharedconfdir})
+$(info [ywen] $$builddir = ${builddir})
+$(info [ywen] $$stampdir = ${stampdir})
+
 #
 # The binary package name always starts with linux-image-$KVER-$ABI.$UPLOAD_NUM. There
 # are places that you'll find linux-image hard coded, but I guess thats OK since the
@@ -174,6 +194,14 @@ mods_extra_pkg_name=linux-modules-extra-$(abi_release)
 bldinfo_pkg_name=linux-buildinfo-$(abi_release)
 hdrs_pkg_name=linux-headers-$(abi_release)
 indep_hdrs_pkg_name=$(src_pkg_name)-headers-$(abi_release)
+
+$(info [ywen] $$bin_pkg_name_signed = ${bin_pkg_name_signed})
+$(info [ywen] $$bin_pkg_name_unsigned = ${bin_pkg_name_unsigned})
+$(info [ywen] $$mods_pkg_name = ${mods_pkg_name})
+$(info [ywen] $$mods_extra_pkg_name = ${mods_extra_pkg_name})
+$(info [ywen] $$bldinfo_pkg_name = ${bldinfo_pkg_name})
+$(info [ywen] $$hdrs_pkg_name = ${hdrs_pkg_name})
+$(info [ywen] $$indep_hdrs_pkg_name = ${indep_hdrs_pkg_name})
 
 #
 # The generation of content in the doc package depends on both 'AUTOBUILD=' and
@@ -209,6 +237,8 @@ do_libc_dev_package=true
 else
 do_libc_dev_package=false
 endif
+
+$(info [ywen] $$do_libc_dev_package = ${do_libc_dev_package})
 
 # common headers normally is built as an indep package, but may be arch
 do_common_headers_indep=true
@@ -359,3 +389,7 @@ $(foreach _line,$(shell gawk '{ OFS = "!"; $$1 = $$1; print }' $(DROOT)/dkms-ver
     $(eval dkms_$(_m)_subdir = kernel) \
   ) \
 )
+
+$(info [ywen] $$all_dkms_modules = ${all_dkms_modules})
+
+$(info [ywen] >>> (END of 0-common-vars.mk))
