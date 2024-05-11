@@ -8,10 +8,18 @@ build-indep:
 #
 indep_hdrpkg = $(indep_hdrs_pkg_name)
 indep_hdrdir = $(CURDIR)/debian/$(indep_hdrpkg)/usr/src/$(indep_hdrpkg)
+
+# NOTE(ywen): The `@echo Debug` line can already serve as the marker that tells
+# the start of this build target.
 $(stampdir)/stamp-install-headers: $(stampdir)/stamp-prepare-indep
 	@echo Debug: $@
 	dh_testdir
 
+# NOTE(ywen): OK... So this whole `ifeq...endif` block still belongs to the
+# build target `$(stampdir)/stamp-install-headers`.
+# TODO(ywen): The `include` folder is required but as of 2024-05-11, I created
+# an empty `include` folder just to make the build instruction succeed. I will
+# need to copy necessary header files later.
 ifeq ($(do_flavour_header_package),true)
 	install -d $(indep_hdrdir)
 	find . -path './debian' -prune -o -path './$(DEBIAN)' -prune \
@@ -29,6 +37,7 @@ endif
 
 docpkg = $(doc_pkg_name)
 docdir = $(CURDIR)/debian/$(docpkg)/usr/share/doc/$(docpkg)
+$(info [ywen] $$docdir = ${docdir})
 install-doc: $(stampdir)/stamp-prepare-indep
 	@echo Debug: $@
 ifeq ($(do_doc_package),true)
@@ -36,6 +45,10 @@ ifeq ($(do_doc_package),true)
 	dh_testroot
 
 	install -d $(docdir)
+
+# TODO(ywen): As of 2024-05-11, the `Documentation` folder is almost an empty
+# folder. But maybe it's OK to be empty if I don't plan to build the
+# documentation.
 ifeq ($(do_doc_package_content),true)
 	# First the html docs. We skip these for autobuilds
 	if [ -z "$(AUTOBUILD)" ]; then \
