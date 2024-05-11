@@ -1,0 +1,60 @@
+- name: Get the currently installed kernel release.
+  command:
+    argv:
+      - uname
+      - -r
+  register: uname_result
+
+- name: Set kernel release.
+  set_fact:
+    kernel_release: "{{uname_result.stdout_lines[0]}}"
+
+- name: Add needed `deb-src` repositories to APT.
+  become: yes
+  apt_repository:
+    repo: deb-src http://archive.ubuntu.com/ubuntu jammy main
+    state: present
+  loop:
+    - deb-src http://archive.ubuntu.com/ubuntu jammy main
+    - deb-src http://archive.ubuntu.com/ubuntu jammy-updates main
+
+- name: Update APT cache.
+  become: yes
+  apt:
+    cache_valid_time: 900
+    update_cache: yes
+
+- name: Install build dependencies (batch 1).
+  become: yes
+  apt:
+    name:
+      - linux
+      - linux-image-{{kernel_release}}
+    state: build-dep
+
+- name: Install build dependencies (batch 2).
+  become: yes
+  apt:
+    name:
+      - libncurses-dev
+      - gawk
+      - flex
+      - bison
+      - openssl
+      - libssl-dev
+      - dkms
+      - libelf-dev
+      - libudev-dev
+      - libpci-dev
+      - libiberty-dev
+      - autoconf
+      - llvm
+
+- name: Install build dependencies (batch 3) (not even mentioned in Wiki page).
+  become: yes
+  apt:
+    name:
+      # Build instructions need `fakeroot`.
+      - fakeroot
+      # Fix `Makefile.config:257: *** /usr/bin/python3-config not found.`
+      - python3-dev

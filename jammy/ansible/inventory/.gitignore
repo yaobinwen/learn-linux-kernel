@@ -1,0 +1,5 @@
+# We ignore any other `.yml` files except `localhost.yml`, so one can define
+# his/her own inventory file without having to worry about messing up with the
+# source control.
+*.yml
+!localhost.yml
