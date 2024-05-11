@@ -161,3 +161,12 @@ x509.genkey
 
 # Documentation toolchain
 sphinx_*/
+
+# [ywen] The other files that are auto-generated.
+debian.master/control.stub
+debian/canonical-certs.pem
+debian/canonical-revoked-certs.pem
+debian/changelog
+debian/control
+debian/copyright
+scripts/ubuntu-retpoline-extract-one
