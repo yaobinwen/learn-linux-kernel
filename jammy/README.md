@@ -28,3 +28,27 @@ References:
   - 4.3 Build in one of the following ways:
     - 4.3.1 (Quicker build) `LANG=C fakeroot debian/rules binary-headers binary-generic binary-perarch`
     - 4.3.2 (Need linux-tools or lowlatency kernel) `LANG=C fakeroot debian/rules binary`
+
+## 2024-05-11 (Sat)
+
+Today I started to work on building Ubuntu Jammy's source code.
+
+I followed the build instructions above and started with `debian/rules clean`. After running `debian/rules clean`, the first obstacle was the line below in `jammy/debian/rules.d/0-common-vars.mk`:
+
+```makefile
+raw_kernelversion=$(shell make kernelversion)
+```
+
+To run `make kernelversion` successfully, I needed to copy more files into the source tree. The commit `883ca1313f2eae65139ba71130eb46429d7963e5` has all the needed files to run `make kernelversion` successfully:
+
+```
+vagrant@ywen-linux-lab:/lab/learn-linux-kernel/jammy$ make kernelversion
+[ywen] Makefile: $this-makefile = Makefile
+[ywen] Makefile: $abs_srctree = /lab/learn-linux-kernel/jammy
+[ywen] Makefile: $abs_objtree = /lab/learn-linux-kernel/jammy
+[ywen] $SUBARCH=x86
+[ywen] $ARCH = x86
+[ywen] $UTS_MACHINE = x86
+[ywen] $SRCARCH = x86
+5.15.77
+```
