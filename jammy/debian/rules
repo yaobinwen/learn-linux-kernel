@@ -30,6 +30,10 @@ export DROOT=debian
 include $(DROOT)/rules.d/0-common-vars.mk
 
 # Pull in some arch specific stuff
+# NOTE(ywen): `include` is "hard inclusion" that requires the included file be
+# present; `-include` is "try inclusion" that doesn't require the included file
+# be present.
+$(info [ywen] $$arch = ${arch})	# NOTE(ywen): amd64
 -include $(DEBIAN)/rules.d/$(arch).mk
 
 # Pull in some branch specific stuff. Used by LTS backport
@@ -64,6 +68,7 @@ bin_pkg_name=$(bin_pkg_name_unsigned)
 else
 bin_pkg_name=$(bin_pkg_name_signed)
 endif
+$(info [ywen] $$bin_pkg_name = ${bin_pkg_name})
 
 # Stages -- support both DEB_STAGE=stage1 and DEB_BUILD_PROFILE=bootstrap
 ifeq ($(DEB_STAGE),stage1)
