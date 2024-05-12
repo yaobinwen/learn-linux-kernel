@@ -32,6 +32,15 @@ References:
       - The target `binary` is in `debian/rules`.
       - Because the target `binary` depends on two sub-targets: `binary-indep` and `binary-arch`, one can start with `LANG=C fakeroot debian/rules binary-indep`.
 
+## How to resume the previous work
+
+Because I can't finish the kernel building in one sitting, I need to write down how to resume the work:
+- 1). `cd ~/yaobin/code/linux-lab`.
+- 2). `vagrant up` to start up the VM `ywen-linux-lab`. (See `Linux-Lab` for more details.)
+- 3). `vagrant ssh` to log into the VM.
+- 4). `cd /lab/learn-linux-kernel/jammy`: This is where I've been building the kernel code.
+- 5). `cd /lab/ubuntu-kernel-jammy`: This is the folder I built successfully before so it can be used as a reference.
+
 ## 2024-05-11 (Sat)
 
 ### `make kernelversion`
@@ -149,4 +158,31 @@ If I didn't call `debian/rule clean` but called `debian/rule binary-indep` direc
 
 ```
 dh_prep: error: "debian/control" not found. Are you sure you are in the correct directory?
+```
+
+## 2024-05-12 (Sun)
+
+Today I continued with the Jammy kernel building. I was currently running into the following error:
+
+```
+/usr/bin/make -C /lab/learn-linux-kernel/jammy O=/lab/learn-linux-kernel/jammy/debian/tmp-headers KERNELVERSION=5.15.0-57 INSTALL_HDR_PATH=/lab/learn-linux-kernel/jammy/debian/tmp-headers/install SHELL="/bin/bash -e" ARCH=x86 defconfig
+make[1]: Entering directory '/lab/learn-linux-kernel/jammy'
+make[2]: Entering directory '/lab/learn-linux-kernel/jammy/debian/tmp-headers'
+  GEN     Makefile
+  HOSTCC  scripts/basic/fixdep
+  HOSTCC  scripts/kconfig/conf.o
+  HOSTCC  scripts/kconfig/confdata.o
+  HOSTCC  scripts/kconfig/expr.o
+  LEX     scripts/kconfig/lexer.lex.c
+  YACC    scripts/kconfig/parser.tab.[ch]
+  HOSTCC  scripts/kconfig/lexer.lex.o
+  HOSTCC  scripts/kconfig/menu.o
+  HOSTCC  scripts/kconfig/parser.tab.o
+  HOSTCC  scripts/kconfig/preprocess.o
+  HOSTCC  scripts/kconfig/symbol.o
+  HOSTCC  scripts/kconfig/util.o
+  HOSTLD  scripts/kconfig/conf
+*** Default configuration is based on target 'x86_64_defconfig'
+  GEN     Makefile
+sh: 1: /lab/learn-linux-kernel/jammy/scripts/as-version.sh: not found
 ```
