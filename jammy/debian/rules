@@ -186,6 +186,8 @@ ifneq (,$(wildcard $(DEBIAN)/control.d/linux-doc.stub))
 endif
 endif
 
+$(info [ywen] $$control_files = ${control_files})
+
 # Misc stuff
 .PHONY: $(DEBIAN)/control.stub
 $(DEBIAN)/control.stub: 				\
