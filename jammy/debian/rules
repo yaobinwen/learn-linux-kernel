@@ -33,6 +33,11 @@ include $(DROOT)/rules.d/0-common-vars.mk
 # NOTE(ywen): `include` is "hard inclusion" that requires the included file be
 # present; `-include` is "try inclusion" that doesn't require the included file
 # be present.
+# NOTE(ywen): Maybe we want to make the inclusion mandatory. On 2024-05-11, I
+# ran into the error in the build target `install-arch-headers` that the step
+# `$(hmake) $(defconfig)` couldn't succeed. After debugging, I figured it was
+# because `header_arch` was not set in the command line `hmake`. `header_arch`
+# was not set because `$(DEBIAN)/rules.d/amd64.mk` was not included.
 $(info [ywen] $$arch = ${arch})	# NOTE(ywen): amd64
 -include $(DEBIAN)/rules.d/$(arch).mk
 
