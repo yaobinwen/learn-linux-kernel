@@ -554,7 +554,24 @@ endif
 	rm -rf $(headers_tmp)
 	install -d $(headers_tmp) $(headers_dir)/usr/include/
 
+# NOTE(ywen): On my build VM, the following command was expanded as:
+# ```
+#	/usr/bin/make -C /lab/learn-linux-kernel/jammy \
+#		O=/lab/learn-linux-kernel/jammy/debian/tmp-headers \
+#		KERNELVERSION=5.15.0-57 \
+#		INSTALL_HDR_PATH=/lab/learn-linux-kernel/jammy/debian/tmp-headers/install \
+#		SHELL="/bin/bash -e" \
+#		ARCH=x86 defconfig
+# ```
+# `-C` means "Change  to directory dir before reading the makefiles or doing
+# anything else." So this command essentially runs `jammy/Makefile` with the
+# variables set.
+# `O` means "Locate all output files in "dir", including .config". See the
+# section "Brief documentation of the typical targets used" in `jammy/Makefile`,
+# or read the paragraph of "Kbuild will save output files in the current
+# working directory." in `jammy/Makefile`.
 	$(hmake) $(defconfig)
+
 	mv $(headers_tmp)/.config $(headers_tmp)/.config.old
 	sed -e 's/^# \(CONFIG_MODVERSIONS\) is not set$$/\1=y/' \
 	  -e 's/.*CONFIG_LOCALVERSION_AUTO.*/# CONFIG_LOCALVERSION_AUTO is not set/' \

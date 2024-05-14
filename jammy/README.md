@@ -41,6 +41,23 @@ Because I can't finish the kernel building in one sitting, I need to write down 
 - 4). `cd /lab/learn-linux-kernel/jammy`: This is where I've been building the kernel code.
 - 5). `cd /lab/ubuntu-kernel-jammy`: This is the folder I built successfully before so it can be used as a reference.
 
+## Build progress
+
+- [ ] `binary-indep`
+  - [ ] `install-indep`
+    - [x] `$(stampdir)/stamp-install-headers`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+    - [x] `install-doc`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+    - [x] `install-source`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+    - [ ] `install-tools`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+      - [ ] `$(stampdir)/stamp-build-perarch`
+        - [x] `$(stampdir)/stamp-prepare-perarch` (no more deps)
+        - [ ] `install-arch-headers` (no more deps)
+- [ ] (To be continued)
+
 ## 2024-05-11 (Sat)
 
 ### `make kernelversion`
