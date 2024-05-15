@@ -41,6 +41,43 @@ Because I can't finish the kernel building in one sitting, I need to write down 
 - 4). `cd /lab/learn-linux-kernel/jammy`: This is where I've been building the kernel code.
 - 5). `cd /lab/ubuntu-kernel-jammy`: This is the folder I built successfully before so it can be used as a reference.
 
+## Build verbosity
+
+As of 2024-05-14, I've found two ways to control the output verbosity:
+- 1). When running `LANG=C fakeroot debian/rules binary-indep`, just append `V=1` to it: `LANG=C fakeroot debian/rules binary-indep V=1`.
+- 2). In `jammy/debian/rules.d/2-binary-arch.mk`, find the block of "hmake := $(MAKE) -C $(CURDIR) O=$(headers_tmp) \ ..." and add `V=1` to it:
+
+```
+hmake := $(MAKE) \
+	-C $(CURDIR) \
+	V=1 \
+	O=$(headers_tmp) \
+	KERNELVERSION=$(abi_release) \
+	INSTALL_HDR_PATH=$(headers_tmp)/install \
+	SHELL="$(SHELL)" \
+	ARCH=$(header_arch)
+```
+
+Note that `V=2` doesn't seem to mean "verbose AND give the reason why each target is rebuilt". At least `V=2` is not as verbose as `V=1`. The following block in `jammy/Makefile` shows how the quietness is determined:
+
+```makefile
+ifeq ("$(origin V)", "command line")
+  KBUILD_VERBOSE = $(V)
+endif
+
+ifndef KBUILD_VERBOSE
+  KBUILD_VERBOSE = 0
+endif
+
+ifeq ($(KBUILD_VERBOSE),1)
+  quiet =
+  Q =
+else
+  quiet=quiet_
+  Q = @
+endif
+```
+
 ## Build progress
 
 - [ ] `binary-indep`
@@ -56,6 +93,13 @@ Because I can't finish the kernel building in one sitting, I need to write down 
       - [ ] `$(stampdir)/stamp-build-perarch`
         - [x] `$(stampdir)/stamp-prepare-perarch` (no more deps)
         - [ ] `install-arch-headers` (no more deps)
+          - [ ] `jammy/Makefile`.
+            - [ ] `__sub-make`
+              - [ ] `defconfig` in `jammy/Makefile`
+                - [ ] `defconfig` in `jammy/scripts/kconfig/Makefile`
+                  - [ ] `x86_64_defconfig` in `jammy/Makefile`
+                    - [ ] `x86_64_defconfig` in `jammy/scripts/kconfig/Makefile`
+            - [ ] WIP: L116: "# Call a source code checker (by default, "sparse") as part of the"
 - [ ] (To be continued)
 
 ## 2024-05-11 (Sat)
@@ -203,3 +247,7 @@ make[2]: Entering directory '/lab/learn-linux-kernel/jammy/debian/tmp-headers'
   GEN     Makefile
 sh: 1: /lab/learn-linux-kernel/jammy/scripts/as-version.sh: not found
 ```
+
+## 2024-05-14 (Tue)
+
+Today I read the article [Exploring the Linux kernel: The secrets of Kconfig/kbuild](https://opensource.com/article/18/10/kbuild-and-kconfig) to get some sense about `Kconfig`.

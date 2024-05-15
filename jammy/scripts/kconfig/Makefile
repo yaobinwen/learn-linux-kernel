@@ -81,8 +81,11 @@ PHONY += savedefconfig defconfig
 savedefconfig: $(obj)/conf
 	$(Q)$< $(silent) --$@=defconfig $(Kconfig)
 
+# NOTE(ywen)(2024-05-14): `SRCARCH=x86`
 defconfig: $(obj)/conf
 ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)),)
+    # NOTE(ywen)(2024-05-14): Because we can find `arch/x86/configs/x86_64_defconfig`,
+    # we will go this `if` branch.
 	@$(kecho) "*** Default configuration is based on '$(KBUILD_DEFCONFIG)'"
 	$(Q)$< $(silent) --defconfig=arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG) $(Kconfig)
 else

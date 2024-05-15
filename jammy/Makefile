@@ -11,6 +11,9 @@ NAME = Trick or Treat
 # Comments in this file are targeted only to the developer, do not
 # expect to learn how to build the kernel reading this file.
 
+# NOTE(ywen): This `if` check ensures that targets prefixed with "__" are only
+# used internally. If a target of such is specified in `MAKECMDGOALS`, `Make`
+# will generate an error.
 $(if $(filter __%, $(MAKECMDGOALS)), \
 	$(error targets prefixed with '__' are only for internal use))
 
@@ -34,10 +37,14 @@ __all:
 # descending is started. They are now explicitly listed as the
 # prepare rule.
 
+# NOTE(ywen): It looks like if `sub_make_done` is not 1, it means "sub-make is
+# not done yet", i.e., the recursive build process needs to be set up.
 ifneq ($(sub_make_done),1)
 
 # Do not use make's built-in rules and variables
 # (this increases performance and avoids hard-to-debug behaviour)
+# NOTE(ywen): Per `make(1)`, `-r` == `--no-builtin-rules`; `-R` ==
+# `--no-builtin-variables`.
 MAKEFLAGS += -rR
 
 # Avoid funny character set dependencies
@@ -76,9 +83,14 @@ unexport GREP_OPTIONS
 # To put more focus on warnings, be less verbose as default
 # Use 'make V=1' to see the full commands
 
+# NOTE(ywen)(2024-05-14): The `origin` function:
+# https://www.gnu.org/software/make/manual/html_node/Origin-Function.html
+# Basically, this `if` block overrides `KBUILD_VERBOSE` with `V` that comes
+# from the command line.
 ifeq ("$(origin V)", "command line")
   KBUILD_VERBOSE = $(V)
 endif
+
 ifndef KBUILD_VERBOSE
   KBUILD_VERBOSE = 0
 endif
@@ -221,6 +233,9 @@ $(filter-out $(this-makefile), $(MAKECMDGOALS)) __all: __sub-make
 
 # Invoke a second make in the output directory, passing relevant variables
 __sub-make:
+	@echo [ywen] Debug: $@
+	@echo [ywen] MAKECMDGOALS: ${MAKECMDGOALS}
+	@echo $(Q)$(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
 	$(Q)$(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
 
 endif # need-sub-make
@@ -236,6 +251,7 @@ MAKEFLAGS += --no-print-directory
 
 ifeq ($(abs_srctree),$(abs_objtree))
         # building in the source tree
+        # NOTE(ywen): This is our case: building in the source tree.
         srctree := .
 	building_out_of_srctree :=
 else
@@ -574,6 +590,7 @@ export RCS_TAR_IGNORE := --exclude SCCS --exclude BitKeeper --exclude .svn \
 # Basic helpers built in scripts/basic/
 PHONY += scripts_basic
 scripts_basic:
+	@echo [ywen] Debug: $@
 	$(Q)$(MAKE) $(build)=scripts/basic
 
 PHONY += outputmakefile
@@ -635,9 +652,13 @@ include $(srctree)/arch/$(SRCARCH)/Makefile
 export KBUILD_DEFCONFIG KBUILD_KCONFIG CC_VERSION_TEXT
 
 config: outputmakefile scripts_basic FORCE
+	@echo [ywen][2024-05-14] Debug: $@
 	$(Q)$(MAKE) $(build)=scripts/kconfig $@
 
+# NOTE(ywen): `%config` seems to mean a wildcard match for all the build targets
+# that end with "config", e.g., "defconfig", "x86_64_defconfig".
 %config: outputmakefile scripts_basic FORCE
+	@echo [ywen][2024-05-14] Debug: $@
 	$(Q)$(MAKE) $(build)=scripts/kconfig $@
 
 else #!config-build
