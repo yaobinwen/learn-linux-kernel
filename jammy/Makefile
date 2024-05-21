@@ -1397,6 +1397,8 @@ endif
 
 PHONY += scripts_unifdef
 scripts_unifdef: scripts_basic
+	@echo [ywen][2024-05-15] Debug: $@
+	@echo [ywen][2024-05-15] "scripts/unidef.c" seems to be the first C file that gets built...
 	$(Q)$(MAKE) $(build)=scripts scripts/unifdef
 
 # ---------------------------------------------------------------------------

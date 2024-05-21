@@ -251,3 +251,7 @@ sh: 1: /lab/learn-linux-kernel/jammy/scripts/as-version.sh: not found
 ## 2024-05-14 (Tue)
 
 Today I read the article [Exploring the Linux kernel: The secrets of Kconfig/kbuild](https://opensource.com/article/18/10/kbuild-and-kconfig) to get some sense about `Kconfig`.
+
+## 2024-05-20 (Mon)
+
+Today I learned how to use the first executable I built: `unifdef`.
