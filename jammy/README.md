@@ -78,6 +78,28 @@ else
 endif
 ```
 
+## Noticeable files
+
+The system call tables are in `jammy/arch/x86/entry/syscalls`:
+- `syscall_32.tbl`, needed by 'arch/x86/include/generated/uapi/asm/unistd_32.h'
+- `syscall_64.tbl` (not sure if needed by any file)
+
+There are two supportive scripts:
+- `scripts/syscallhdr.sh` generates a syscall number header.
+- `scripts/syscalltbl.sh` generates a syscall table header.
+
+The build produced the following header files (paths are relative to `debian/tmp-headers`):
+```
+/usr/bin/make -f /lab/learn-linux-kernel/jammy/scripts/Makefile.build obj=arch/x86/entry/syscalls all
+  sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis i386 --emit-nr   /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_32.tbl arch/x86/include/generated/uapi/asm/unistd_32.h
+  sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis common,64 --emit-nr   /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/uapi/asm/unistd_64.h
+  sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis common,x32 --emit-nr --offset __X32_SYSCALL_BIT  /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/uapi/asm/unistd_x32.h
+  sh /lab/learn-linux-kernel/jammy/scripts/syscalltbl.sh --abis i386 /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_32.tbl arch/x86/include/generated/asm/syscalls_32.h
+  sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis i386 --emit-nr  --prefix ia32_ /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_32.tbl arch/x86/include/generated/asm/unistd_32_ia32.h
+  sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis x32 --emit-nr  --prefix x32_ /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/unistd_64_x32.h
+  sh /lab/learn-linux-kernel/jammy/scripts/syscalltbl.sh --abis common,64 /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/syscalls_64.h
+```
+
 ## Build progress
 
 - [ ] `binary-indep`
