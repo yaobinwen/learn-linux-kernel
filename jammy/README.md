@@ -80,6 +80,8 @@ endif
 
 ## Noticeable files
 
+### syscalls
+
 The system call tables are in `jammy/arch/x86/entry/syscalls`:
 - `syscall_32.tbl`, needed by 'arch/x86/include/generated/uapi/asm/unistd_32.h'
 - `syscall_64.tbl` (not sure if needed by any file)
@@ -99,6 +101,31 @@ The build produced the following header files (paths are relative to `debian/tmp
   sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis x32 --emit-nr  --prefix x32_ /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/unistd_64_x32.h
   sh /lab/learn-linux-kernel/jammy/scripts/syscalltbl.sh --abis common,64 /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/syscalls_64.h
 ```
+
+### relocation
+
+The `relocs.*` files under `jammy/arch/x86/tools` are part of the tools used for processing relocation information in the `x86` architecture. Relocation information is crucial for linking and loading processes, as it describes how to adjust addresses in the code when the binary is loaded into memory.
+- `jammy/arch/x86/tools/relocs.h` includes the header file `<tools/le_byteshift.h>` which is `jammy/tools/include/tools/le_byteshift.h`.
+
+The generated `relocs` tool is in `./debian/tmp-headers/arch/x86/tools/relocs`. Its help info is as follows:
+
+```
+vagrant@ywen-linux-lab:/lab/learn-linux-kernel/jammy/debian/tmp-headers/arch/x86/tools$ ./relocs --help
+relocs [--abs-syms|--abs-relocs|--reloc-info|--text|--realmode] vmlinux
+```
+
+Is it used specifically for `vmlinux`?
+
+### vmlinux
+
+`vmlinux` is the uncompressed, ELF (Executable and Linkable Format) file that represents the Linux kernel. It is generated as part of the kernel build process and contains the core kernel code, including both the executable code and the necessary data structures.
+- Unlike other kernel images like bzImage, which are compressed to save space and reduce boot times, vmlinux is an uncompressed binary. This makes it easier to analyze and debug.
+- `vmlinux` is in the ELF format, which is a common standard for executables, object code, shared libraries, and core dumps. This format includes headers that describe the file's structure, sections, and segments.
+
+Role and Usage of vmlinux:
+- **Intermediate Build Artifact**: During the kernel build process, `vmlinux` is generated first. Subsequent steps may convert it into different formats suitable for booting on various hardware architectures.
+- **Debugging and Analysis**: Because `vmlinux` is uncompressed and in ELF format, it contains symbol information that is useful for debugging. Developers can use tools like gdb to analyze `vmlinux` and diagnose issues within the kernel.
+- **Relocation and Linking**: `vmlinux` includes relocation information necessary for linking and loading kernel modules. This information helps the kernel loader adjust addresses so that the kernel can run correctly in memory.
 
 ## Build progress
 
@@ -277,3 +304,15 @@ Today I read the article [Exploring the Linux kernel: The secrets of Kconfig/kbu
 ## 2024-05-20 (Mon)
 
 Today I learned how to use the first executable I built: `unifdef`.
+
+I ran into the following build error:
+
+```
+In file included from /lab/learn-linux-kernel/jammy/arch/x86/tools/relocs_32.c:2:
+/lab/learn-linux-kernel/jammy/arch/x86/tools/relocs.h:18:10: fatal error: tools/le_byteshift.h: No such file or directory
+   18 | #include <tools/le_byteshift.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+```
+
+Will need to move `./tools/include/tools/le_byteshift.h` to the build source tree.
