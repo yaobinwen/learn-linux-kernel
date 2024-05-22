@@ -127,6 +127,36 @@ Role and Usage of vmlinux:
 - **Debugging and Analysis**: Because `vmlinux` is uncompressed and in ELF format, it contains symbol information that is useful for debugging. Developers can use tools like gdb to analyze `vmlinux` and diagnose issues within the kernel.
 - **Relocation and Linking**: `vmlinux` includes relocation information necessary for linking and loading kernel modules. This information helps the kernel loader adjust addresses so that the kernel can run correctly in memory.
 
+### `usbip`
+
+`usbip` is a tool used in Linux for sharing USB devices over a network. It stands for "USB over IP" and allows you to make a USB device connected to one machine (the server) appear as if it is connected to another machine (the client). This can be particularly useful for accessing USB devices remotely, such as printers, storage devices, or other peripherals. It consists of two parts:
+- The server daemon (`usbipd`) runs on the machine where the USB devices are physically connected. It exports the devices to the network.
+- The client (`usbip`) runs on the machine that wants to use the remote USB device. It imports the USB device from the server and makes it available as if it were a local device.
+
+The source files are under `jammy/tools/usb/usbip`. The build artifacts are installed under `debian/build/tools-perarch/tools/usb/usbip`, as shown in the build log (which mentions the `lib` folder specifically, but all the build artifacts are under `debian/build/tools-perarch/tools/usb/usbip`, such as `bin/sbin/usbipd`):
+
+```
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /lab/learn-linux-kernel/jammy/debian/build/tools-perarch/tools/usb/usbip/bin/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the '-LLIBDIR'
+
+flag during linking and do at least one of the following:
+   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+     during linking
+   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+```
+
 ## Build progress
 
 - [ ] `binary-indep`
