@@ -166,6 +166,7 @@ sphinx_*/
 
 # [ywen] The other files that are auto-generated.
 debian.master/control.stub
+debian/build
 debian/canonical-certs.pem
 debian/canonical-revoked-certs.pem
 debian/changelog
@@ -173,6 +174,7 @@ debian/control
 debian/copyright
 debian/linux-doc/
 debian/linux-headers-5.15.0-57/
+debian/linux-libc-dev/
 debian/stamps/stamp-install-headers
 debian/stamps/stamp-prepare-indep
 debian/stamps/stamp-prepare-perarch
