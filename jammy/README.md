@@ -346,3 +346,7 @@ compilation terminated.
 ```
 
 Will need to move `./tools/include/tools/le_byteshift.h` to the build source tree.
+
+## 2024-05-22 (Wed)
+
+Today I started to build `tools/power/acpi`.
