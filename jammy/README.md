@@ -38,7 +38,7 @@ Because I can't finish the kernel building in one sitting, I need to write down 
 - 1). `cd ~/yaobin/code/linux-lab`.
 - 2). `vagrant up` to start up the VM `ywen-linux-lab`. (See `Linux-Lab` for more details.)
 - 3). `vagrant ssh` to log into the VM.
-- 4). `cd /lab/learn-linux-kernel/jammy`: This is where I've been building the kernel code.
+- 4). `cd /lab/learn-linux-kernel/jammy`: This is where I've been building the kernel code. You can run the build command to build the code. See the section "Build verbosity" for the build command.
 - 5). `cd /lab/ubuntu-kernel-jammy`: This is the folder I built successfully before so it can be used as a reference.
 
 ## Build verbosity
@@ -156,6 +156,10 @@ See any operating system documentation about shared libraries for
 more information, such as the ld(1) and ld.so(8) manual pages.
 ----------------------------------------------------------------------
 ```
+
+### `include/linux`
+
+On 2024-06-16, I needed to add the file `include/linux/circ_buf.h`. Then it occurred to me that `include/linux` probably has all the interface header files for Linux.
 
 ## Build progress
 
@@ -349,4 +353,10 @@ Will need to move `./tools/include/tools/le_byteshift.h` to the build source tre
 
 ## 2024-05-22 (Wed)
 
-Today I started to build `tools/power/acpi`.
+Today I started to build `tools/power/acpi`. Building it requires the files in `include/acpi/`.
+
+Meanwhile, "acpi" means "Advanced Configuration and Power Interface". See [ACPI Component Architecture (ACPICA)](https://www.intel.com/content/www/us/en/developer/topic-technology/open/acpica/overview.html) for more information.
+
+## 2024-05-25 (Sat)
+
+I have to pause the project for a while because my baby girl was born tonight so I will need to spend time taking care of her.
