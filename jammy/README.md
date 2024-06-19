@@ -1,6 +1,6 @@
 # Ubuntu Jammy
 
-## Overview
+## 1. Overview
 
 The main reference is [`~ubuntu-kernel-stable/jammy`](https://git.launchpad.net/~ubuntu-kernel-stable/+git/jammy).
 
@@ -12,7 +12,7 @@ So I'm doing it this way: Copy the whole [`debian` folder](https://git.launchpad
 
 Note: Because I work on `x86` machines, I will focus on building the code on `x86` platforms, so I may not copy the source files that are only needed for building on other platforms.
 
-## How to build
+## 2. How to build
 
 References:
 - [1] [Ubuntu: Build Your Own Kernel](https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel)
@@ -30,9 +30,9 @@ References:
     - 4.3.1 (Quicker build) `LANG=C fakeroot debian/rules binary-headers binary-generic binary-perarch`
     - 4.3.2 (Need linux-tools or lowlatency kernel) `LANG=C fakeroot debian/rules binary`
       - The target `binary` is in `debian/rules`.
-      - Because the target `binary` depends on two sub-targets: `binary-indep` and `binary-arch`, one can start with `LANG=C fakeroot debian/rules binary-indep`.
+      - Because the target `binary` depends on two sub-targets: `binary-indep` and `binary-arch`, one can start with `LANG=C fakeroot debian/rules binary-indep` and then build the target `binary-arch`.
 
-## How to resume the previous work
+## 3. How to resume the previous work
 
 Because I can't finish the kernel building in one sitting, I need to write down how to resume the work:
 - 1). `cd ~/yaobin/code/linux-lab`.
@@ -41,7 +41,7 @@ Because I can't finish the kernel building in one sitting, I need to write down 
 - 4). `cd /lab/learn-linux-kernel/jammy`: This is where I've been building the kernel code. You can run the build command to build the code. See the section "Build verbosity" for the build command.
 - 5). `cd /lab/ubuntu-kernel-jammy`: This is the folder I built successfully before so it can be used as a reference.
 
-## Build verbosity
+## 4. Build verbosity
 
 As of 2024-05-14, I've found two ways to control the output verbosity:
 - 1). When running `LANG=C fakeroot debian/rules binary-indep`, just append `V=1` to it: `LANG=C fakeroot debian/rules binary-indep V=1`.
@@ -77,6 +77,30 @@ else
   Q = @
 endif
 ```
+
+## 5. Build progress
+
+- [ ] `binary-indep`
+  - [ ] `install-indep`
+    - [x] `$(stampdir)/stamp-install-headers`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+    - [x] `install-doc`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+    - [x] `install-source`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+    - [ ] `install-tools`
+      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
+      - [ ] `$(stampdir)/stamp-build-perarch`
+        - [x] `$(stampdir)/stamp-prepare-perarch` (no more deps)
+        - [ ] `install-arch-headers` (no more deps)
+          - [ ] The line `$(hmake) $(defconfig)` actually calls `jammy/Makefile`.
+            - [ ] `__sub-make`
+              - [ ] `defconfig` in `jammy/Makefile`
+                - [ ] `defconfig` in `jammy/scripts/kconfig/Makefile`
+                  - [ ] `x86_64_defconfig` in `jammy/Makefile`
+                    - [ ] `x86_64_defconfig` in `jammy/scripts/kconfig/Makefile`
+            - [ ] WIP: L116: "# Call a source code checker (by default, "sparse") as part of the"
+- [ ] (To be continued)
 
 ## Noticeable files
 
@@ -160,30 +184,6 @@ more information, such as the ld(1) and ld.so(8) manual pages.
 ### `include/linux`
 
 On 2024-06-16, I needed to add the file `include/linux/circ_buf.h`. Then it occurred to me that `include/linux` probably has all the interface header files for Linux.
-
-## Build progress
-
-- [ ] `binary-indep`
-  - [ ] `install-indep`
-    - [x] `$(stampdir)/stamp-install-headers`
-      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
-    - [x] `install-doc`
-      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
-    - [x] `install-source`
-      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
-    - [ ] `install-tools`
-      - [x] `$(stampdir)/stamp-prepare-indep` (no more deps)
-      - [ ] `$(stampdir)/stamp-build-perarch`
-        - [x] `$(stampdir)/stamp-prepare-perarch` (no more deps)
-        - [ ] `install-arch-headers` (no more deps)
-          - [ ] `jammy/Makefile`.
-            - [ ] `__sub-make`
-              - [ ] `defconfig` in `jammy/Makefile`
-                - [ ] `defconfig` in `jammy/scripts/kconfig/Makefile`
-                  - [ ] `x86_64_defconfig` in `jammy/Makefile`
-                    - [ ] `x86_64_defconfig` in `jammy/scripts/kconfig/Makefile`
-            - [ ] WIP: L116: "# Call a source code checker (by default, "sparse") as part of the"
-- [ ] (To be continued)
 
 ## 2024-05-11 (Sat)
 

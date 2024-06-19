@@ -7,6 +7,9 @@
 # Copyright (c) 2007 Ben Collins <bcollins@ubuntu.com>
 #
 
+# NOTE(ywen): Print the start point of the build process.
+$(info [ywen] Code building starts here)
+
 # NOTE(ywen): Let's see where we are right now.
 $(info [ywen] pwd: $(shell pwd))
 
