@@ -206,6 +206,9 @@ binary-headers: $(stampdir)/stamp-prepare-indep $(stampdir)/stamp-install-header
 	dh_md5sums -p$(indep_hdrpkg)
 	dh_builddeb -p$(indep_hdrpkg)
 
+# NOTE(ywen): The three occurrences of `binary-indep` do not define the target
+# three times. The first two occurrences define target-specific variables which
+# are only set when the target `binary-indep` is being built.
 binary-indep: cloudpkg = $(cloud_common_pkg_name)
 binary-indep: hosttoolspkg = $(hosttools_pkg_name)
 binary-indep: install-indep
