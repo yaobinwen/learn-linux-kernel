@@ -719,6 +719,7 @@ $(stampdir)/stamp-prepare-perarch:
 ifeq ($(do_any_tools),true)
 	rm -rf $(builddirpa)
 	install -d $(builddirpa)
+    # [ywen] This `rsync` copies the header files to `debian/build/tools-perarch/`.
 	rsync -a --exclude debian --exclude debian.master --exclude $(DEBIAN) --exclude .git -a ./ $(builddirpa)/
 endif
 	touch $@
