@@ -362,7 +362,7 @@ endif
 	#
 	# Remove files which are generated at installation by postinst,
 	# except for modules.order and modules.builtin
-	# 
+	#
 	# NOTE: need to keep this list in sync with postrm
 	#
 	mkdir $(pkgdir)/lib/modules/$(abi_release)-$*/_
@@ -716,6 +716,7 @@ builddirpa = $(builddir)/tools-perarch
 
 $(stampdir)/stamp-prepare-perarch:
 	@echo Debug: $@
+	@echo [ywen] builddirpa = $(builddirpa)
 ifeq ($(do_any_tools),true)
 	rm -rf $(builddirpa)
 	install -d $(builddirpa)

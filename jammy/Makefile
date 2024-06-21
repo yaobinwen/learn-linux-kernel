@@ -237,6 +237,7 @@ __sub-make:
 	@echo [ywen] MAKECMDGOALS: ${MAKECMDGOALS}
 	@echo $(Q)$(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
 	$(Q)$(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
+	@echo [ywen] Debug: $@ [done]
 
 endif # need-sub-make
 endif # sub_make_done
@@ -368,6 +369,7 @@ $(MAKECMDGOALS): __build_one_by_one
 	@:
 
 __build_one_by_one:
+	@echo [ywen] Debug: $@
 	$(Q)set -e; \
 	for i in $(MAKECMDGOALS); do \
 		$(MAKE) -f $(srctree)/Makefile $$i; \
@@ -745,7 +747,7 @@ ifdef CONFIG_RETHUNK
 RETHUNK_CFLAGS         := -mfunction-return=thunk-extern
 RETPOLINE_CFLAGS       += $(RETHUNK_CFLAGS)
 endif
- 
+
 export RETPOLINE_CFLAGS
 export RETPOLINE_VDSO_CFLAGS
 
