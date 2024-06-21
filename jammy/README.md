@@ -93,13 +93,16 @@ endif
       - [ ] `$(stampdir)/stamp-build-perarch`
         - [x] `$(stampdir)/stamp-prepare-perarch` (no more deps)
         - [ ] `install-arch-headers` (no more deps)
-          - [ ] The line `$(hmake) $(defconfig)` actually calls `jammy/Makefile`.
-            - [ ] `__sub-make`
-              - [ ] `defconfig` in `jammy/Makefile`
-                - [ ] `defconfig` in `jammy/scripts/kconfig/Makefile`
-                  - [ ] `x86_64_defconfig` in `jammy/Makefile`
-                    - [ ] `x86_64_defconfig` in `jammy/scripts/kconfig/Makefile`
-            - [ ] WIP: L116: "# Call a source code checker (by default, "sparse") as part of the"
+          - [x] The line `$(hmake) $(defconfig)` actually calls `jammy/Makefile`.
+            - [x] `__sub-make` on three targets:
+              - [x] `defconfig` in `jammy/Makefile` (`$(hmake) $(defconfig)` in `jammy/debian/rules.d/2-binary-arch.mk`)
+                - [x] `defconfig` in `jammy/scripts/kconfig/Makefile`
+                  - [x] `x86_64_defconfig` in `jammy/Makefile`
+                    - [x] `x86_64_defconfig` in `jammy/scripts/kconfig/Makefile`
+              - [x] `syncconfig` (`$(hmake) syncconfig` in `jammy/debian/rules.d/2-binary-arch.mk`)
+              - [x] `headers_install` (`$(hmake) headers_install` in `jammy/debian/rules.d/2-binary-arch.mk`)
+          - [x] Build `usbip` if `do_tools_usbip` is true.
+          - [x] Build `acpidbg` if `do_tools_acpidbg` is true.
 - [ ] (To be continued)
 
 ## Noticeable files
@@ -180,6 +183,17 @@ See any operating system documentation about shared libraries for
 more information, such as the ld(1) and ld.so(8) manual pages.
 ----------------------------------------------------------------------
 ```
+
+### `acpidbg`
+
+The source files are under `jammy/tools/power/acpi`. `acpidbg` is a tool for developers and system administrators who need to debug and interact with the ACPI firmware on Linux systems. By providing access to ACPI tables and methods, it helps diagnose and resolve ACPI-related issues, ensuring better power management and system configuration.
+
+### `cpupower`
+
+The source files are under `jammy/tools/power/cpupower`. `cpupower` is a command-line utility that provides various functionalities for managing CPU power states and performance. It is useful for tuning and optimizing the power consumption and performance of CPUs on a Linux system. Features and use cases include:
+- CPU Frequency Scaling: Adjust the CPU frequency and governor to optimize power consumption or performance.
+- Inspect CPU Information: Retrieve details about the CPU, including supported frequencies, governors, and power states.
+- Set Power Policies: Configure power management policies to balance performance and power usage according to the system's needs.
 
 ### `include/linux`
 
