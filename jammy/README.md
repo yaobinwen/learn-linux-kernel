@@ -195,6 +195,46 @@ The source files are under `jammy/tools/power/cpupower`. `cpupower` is a command
 - Inspect CPU Information: Retrieve details about the CPU, including supported frequencies, governors, and power states.
 - Set Power Policies: Configure power management policies to balance performance and power usage according to the system's needs.
 
+### `scripts/dtc`
+
+This directory contains the source files for the Device Tree Compiler (DTC). The DTC is a tool used to compile and decompile device tree source files. Device trees are a data structure for describing the hardware components of a system, used particularly in embedded systems and ARM-based platforms.
+
+A device tree is a hierarchical data structure that describes the hardware components of a system. It is used by the operating system to understand the hardware it is running on, allowing it to load appropriate drivers and manage hardware resources properly.
+- Device Tree Source (DTS): This is a human-readable file written in a specific syntax that describes the hardware layout.
+- Device Tree Blob (DTB): This is the compiled, binary version of the DTS file that the kernel can read at boot time.
+
+Purpose and use cases of DTC:
+- Compiling Device Trees: Convert human-readable DTS files into binary DTB files that the kernel can use.
+- Decompiling Device Trees: Convert binary DTB files back into human-readable DTS files for analysis or modification.
+- Validation: Ensure the syntax and structure of DTS files are correct before they are used.
+
+Key Files in `scripts/dtc`:
+- `dtc.c`: The main source file for the Device Tree Compiler. It contains the main function and the primary logic for compiling and decompiling device trees.
+- `flattree.c`: Handles the manipulation of flattened device trees, which is an intermediate format used by the DTC.
+- `fstree.c`: Manages the file system tree representation of device trees.
+- `livetree.c`: Deals with the live tree structure, which is used during the parsing and validation phases.
+- `srcpos.c`: Manages source position tracking, which helps in generating meaningful error messages during compilation.
+- `treesource.c`: Handles the conversion between the source (DTS) and internal representations of device trees.
+- `util.c`: Contains utility functions used throughout the DTC codebase.
+- `yamltree.c`: Provides support for handling device trees written in YAML format.
+
+### `scripts/kallsyms.c`
+
+`kallsyms` stands for "Kernel All Symbols." It is a feature in the Linux kernel that provides a way to map kernel symbols (functions and variable names) to their addresses in memory. This mapping is helpful for debugging, as it allows developers to see human-readable names in kernel logs and debugging outputs.
+
+Purpose and use cases:
+- Debugging: When a kernel panic or other serious error occurs, the backtrace can show the symbolic names of the functions rather than raw memory addresses, making it easier to understand where the error occurred.
+- Profiling: Tools like `perf` and `ftrace` use `kallsyms` to map addresses to function names, providing more readable and useful output.
+- Kernel Development: Developers can use `kallsyms` to get insights into the kernel's behavior, identify bottlenecks, and understand the execution flow.
+
+How `kallsyms` Works: During the kernel build process, the `kallsyms` utility generates a symbol table that includes all the symbols (functions, variables) in the kernel. This symbol table is then embedded into the kernel image. The `scripts/kallsyms.c` file in the kernel source code is responsible for generating this symbol table.
+
+`scripts/kallsyms.c` in detail:
+- Extract Symbols: It extracts symbols from the compiled kernel object files.
+- Sort Symbols: It sorts these symbols by address.
+- Remove Unnecessary Symbols: It removes symbols that are not needed for debugging, such as local symbols.
+- Generate Table: It generates a compact symbol table that is included in the final kernel binary.
+
 ### `include/linux`
 
 On 2024-06-16, I needed to add the file `include/linux/circ_buf.h`. Then it occurred to me that `include/linux` probably has all the interface header files for Linux.
