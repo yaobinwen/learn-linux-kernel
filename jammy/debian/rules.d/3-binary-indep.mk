@@ -32,14 +32,18 @@ ifeq ($(do_flavour_header_package),true)
 	(find arch -name include -type d -print | \
 		xargs -n1 -i: find : -type f) | \
 		cpio -pd --preserve-modification-time $(indep_hdrdir)
+
+	ls -l $(indep_hdrdir)
 endif
 	@touch $@
+	@echo Debug: $@ [done]
 
 docpkg = $(doc_pkg_name)
 docdir = $(CURDIR)/debian/$(docpkg)/usr/share/doc/$(docpkg)
 $(info [ywen] $$docdir = ${docdir})
 install-doc: $(stampdir)/stamp-prepare-indep
 	@echo Debug: $@
+
 ifeq ($(do_doc_package),true)
 	dh_testdir
 	dh_testroot
@@ -64,6 +68,8 @@ endif
 	cp -a Documentation/* $(docdir)
 	find $(docdir) -name .gitignore | xargs rm -f
 endif
+
+	@echo Debug: $@ [done]
 
 srcpkg = linux-source-$(release)
 srcdir = $(CURDIR)/debian/$(srcpkg)/usr/src/$(srcpkg)
@@ -189,6 +195,7 @@ $(stampdir)/stamp-prepare-indep:
 	@echo Debug: $@
 	dh_prep -i
 	@touch $@
+	@echo Debug: $@ [done]
 
 install-indep: $(stampdir)/stamp-install-headers install-doc install-source install-tools
 	@echo Debug: $@

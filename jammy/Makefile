@@ -594,6 +594,7 @@ PHONY += scripts_basic
 scripts_basic:
 	@echo [ywen] Debug: $@
 	$(Q)$(MAKE) $(build)=scripts/basic
+    @echo [ywen] Debug: $@ [done]
 
 PHONY += outputmakefile
 ifdef building_out_of_srctree
