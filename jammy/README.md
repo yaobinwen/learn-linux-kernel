@@ -12,6 +12,67 @@ So I'm doing it this way: Copy the whole [`debian` folder](https://git.launchpad
 
 Note: Because I work on `x86` machines, I will focus on building the code on `x86` platforms, so I may not copy the source files that are only needed for building on other platforms.
 
+### Find `*.h` and `*.c` files
+
+Because the source files are copied into the sub-folder `debian` as well, we should exclude the files under `debian`, so the `find` command can be:
+
+```
+find . -name "*.[ch]" ! -path "./debian/*" -type f
+```
+
+./include/x86_64-linux-gnu/sys/types.h
+
+### The header files
+
+It looks like building the kernel code requires the Linux API header files and static/dynamic libraries. For example, `jammy/scripts/basic/fixdep.c` includes the following header files:
+
+```c
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
+```
+
+I can find many of the header files in the Linux source tree. For example:
+- `include/uapi/linux/unistd.h`
+- `include/linux/fcntl.h`
+- `include/linux/string.h`
+- `include/linux/ctype.h`
+
+However, the command that builds `fixdep` is as follows:
+
+```
+gcc -Wp,-MMD,scripts/basic/.fixdep.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89       -I ./scripts/basic   -o scripts/basic/fixdep /lab/learn-linux-kernel/jammy/scripts/basic/fixdep.c
+```
+
+The `-I` only includes `./scripts/basic`, so it doesn't look like that the compiler is able to find those header files in the Linux source tree, so I guess the Linux API header files and library files must be installed as a pre-condition in order to compile the code.
+
+### TODOs:
+- [ ] `./arch/x86/tools/relocs.*`
+- [ ] `./scripts/unifdef.c`
+- [ ] `./scripts/kconfig/`
+- [ ] `./scripts/selinux/mdp/mdp.c`
+- [ ] `./scripts/selinux/genheaders/genheaders.c`
+- [ ] `./scripts/sorttable.c`
+- [ ] `./scripts/kallsyms.c`
+- [ ] `./scripts/genksyms/`
+- [ ] `./scripts/dtc`
+- [ ] `./tools/usb/usbip/`
+- [ ] `./tools/power/cpupower/`
+- [ ] `./tools/power/acpi`
+- [ ] `./security/selinux/include/`
+- [ ] `./tools/arch/x86/include/asm/orc_types.h`
+- [ ] `./tools/include/tools/be_byteshift.h`
+- [ ] `./tools/include/tools/le_byteshift.h`
+- [ ] `jammy/include/linux/circ_buf.h`
+- [ ] `jammy/include/linux/kconfig.h`
+- [ ] `jammy/include/linux/compiler.h`
+
 ## 2. How to build
 
 References:
@@ -105,9 +166,9 @@ endif
           - [x] Build `acpidbg` if `do_tools_acpidbg` is true.
 - [ ] (To be continued)
 
-## Noticeable files
+## 6. Noticeable files
 
-### syscalls
+### 6.1 syscalls
 
 The system call tables are in `jammy/arch/x86/entry/syscalls`:
 - `syscall_32.tbl`, needed by 'arch/x86/include/generated/uapi/asm/unistd_32.h'
@@ -127,6 +188,32 @@ The build produced the following header files (paths are relative to `debian/tmp
   sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis i386 --emit-nr  --prefix ia32_ /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_32.tbl arch/x86/include/generated/asm/unistd_32_ia32.h
   sh /lab/learn-linux-kernel/jammy/scripts/syscallhdr.sh --abis x32 --emit-nr  --prefix x32_ /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/unistd_64_x32.h
   sh /lab/learn-linux-kernel/jammy/scripts/syscalltbl.sh --abis common,64 /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/syscalls_64.h
+```
+
+### 6.2 `jammy/scripts/basic/fixdep.c`
+
+The comment in `fixdep.c` explains the purpose of this tool:
+
+```c
+/*
+ * ...
+ *
+ * gcc produces a very nice and correct list of dependencies which
+ * tells make when to remake a file.
+ *
+ * To use this list as-is however has the drawback that virtually
+ * every file in the kernel includes autoconf.h.
+ *
+ * If the user re-runs make *config, autoconf.h will be
+ * regenerated.  make notices that and will rebuild every file which
+ * includes autoconf.h, i.e. basically all files. This is extremely
+ * annoying if the user just changed CONFIG_HIS_DRIVER from n to m.
+ *
+ * So we play the same trick that "mkdep" played before. We replace
+ * the dependency on autoconf.h by a dependency on every config
+ * option which is mentioned in any of the listed prerequisites.
+ * ...
+ */
 ```
 
 ### relocation
