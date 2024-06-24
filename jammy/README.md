@@ -501,3 +501,22 @@ Meanwhile, "acpi" means "Advanced Configuration and Power Interface". See [ACPI 
 ## 2024-05-25 (Sat)
 
 I have to pause the project for a while because my baby girl was born tonight so I will need to spend time taking care of her.
+
+## 2024-06-23 (Sun)
+
+My next compilation error is this:
+
+```
+need-modorder=
+  gcc -Wp,-MMD,scripts/selinux/mdp/.mdp.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89     -I./include/uapi -I./include -I./security/selinux/include -I./include    -o scripts/selinux/mdp/mdp scripts/selinux/mdp/mdp.c
+  gcc -Wp,-MMD,scripts/.kallsyms.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89         -o scripts/kallsyms scripts/kallsyms.c
+  gcc -Wp,-MMD,scripts/.sorttable.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89      -I./tools/include -I./tools/arch/x86/include -DUNWINDER_ORC_ENABLED   -o scripts/sorttable scripts/sorttable.c   -lpthread
+In file included from scripts/sorttable.h:89,
+                 from scripts/sorttable.c:195:
+./tools/arch/x86/include/asm/orc_types.h:10:10: fatal error: linux/compiler.h: No such file or directory
+   10 | #include <linux/compiler.h>
+      |          ^~~~~~~~~~~~~~~~~~
+compilation terminated.
+```
+
+Note there are multiple `compiler.h` files. The one I should copy is `tools/include/linux/compiler.h`, not `include/linux/compiler`. The `-I` options of the `gcc` command is the clue to solve the issue.
