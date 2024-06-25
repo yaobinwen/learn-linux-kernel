@@ -216,6 +216,8 @@ The comment in `fixdep.c` explains the purpose of this tool:
  */
 ```
 
+After compilation, the executable `fixdep` is created directly under `scripts/basic`.
+
 ### relocation
 
 The `relocs.*` files under `jammy/arch/x86/tools` are part of the tools used for processing relocation information in the `x86` architecture. Relocation information is crucial for linking and loading processes, as it describes how to adjust addresses in the code when the binary is loaded into memory.
@@ -282,6 +284,10 @@ The source files are under `jammy/tools/power/cpupower`. `cpupower` is a command
 - Inspect CPU Information: Retrieve details about the CPU, including supported frequencies, governors, and power states.
 - Set Power Policies: Configure power management policies to balance performance and power usage according to the system's needs.
 
+### `include/linux`
+
+On 2024-06-16, I needed to add the file `include/linux/circ_buf.h`. Then it occurred to me that `include/linux` probably has all the interface header files for Linux.
+
 ### `scripts/dtc`
 
 This directory contains the source files for the Device Tree Compiler (DTC). The DTC is a tool used to compile and decompile device tree source files. Device trees are a data structure for describing the hardware components of a system, used particularly in embedded systems and ARM-based platforms.
@@ -322,9 +328,41 @@ How `kallsyms` Works: During the kernel build process, the `kallsyms` utility ge
 - Remove Unnecessary Symbols: It removes symbols that are not needed for debugging, such as local symbols.
 - Generate Table: It generates a compact symbol table that is included in the final kernel binary.
 
-### `include/linux`
+### `scripts/sorttable.c`
 
-On 2024-06-16, I needed to add the file `include/linux/circ_buf.h`. Then it occurred to me that `include/linux` probably has all the interface header files for Linux.
+This file is compiled with the following command:
+
+```
+gcc -Wp,-MMD,scripts/.sorttable.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89      -I./tools/include -I./tools/arch/x86/include -DUNWINDER_ORC_ENABLED   -o scripts/sorttable scripts/sorttable.c   -lpthread
+```
+
+This file requires the following header files:
+
+- `<sys/types.h>`
+- `<sys/mman.h>`
+- `<sys/stat.h>`
+- `<getopt.h>`
+- `<elf.h>`
+- `<fcntl.h>`
+- `<stdio.h>`
+- `<stdlib.h>`
+- `<string.h>`
+- `<unistd.h>`
+- `<tools/be_byteshift.h>`
+- `<tools/le_byteshift.h>`
+- `"sorttable.h"`
+  - `<errno.h>`
+  - `<pthread.h>`
+  - `<asm/orc_types.h>`
+    - `<linux/types.h>`
+      - `<stdbool.h>`
+      - `<stddef.h>`
+      - `<stdint.h>`
+      - `<asm/types.h>`
+      - `<asm/posix_types.h>`
+    - `<linux/compiler.h>`
+    - `<asm/byteorder.h>`
+
 
 ## 2024-05-11 (Sat)
 
