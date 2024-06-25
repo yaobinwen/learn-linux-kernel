@@ -363,6 +363,15 @@ This file requires the following header files:
     - `<linux/compiler.h>`
     - `<asm/byteorder.h>`
 
+### `scripts/asn1_compiler.c`
+
+["ASN.1"](https://en.wikipedia.org/wiki/ASN.1) is "Abstract Syntax Notation One (ASN.1)", which is "a standard interface description language (IDL) for defining data structures that can be serialized and deserialized in a cross-platform way."
+
+This file is compiled with the following command:
+
+```
+gcc -Wp,-MMD,scripts/.asn1_compiler.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89      -I./include   -o scripts/asn1_compiler scripts/asn1_compiler.c
+```
 
 ## 2024-05-11 (Sat)
 
