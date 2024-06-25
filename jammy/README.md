@@ -373,6 +373,10 @@ This file is compiled with the following command:
 gcc -Wp,-MMD,scripts/.asn1_compiler.d -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89      -I./include   -o scripts/asn1_compiler scripts/asn1_compiler.c
 ```
 
+### `scripts/extract-cert.c`
+
+(TODO)
+
 ## 2024-05-11 (Sat)
 
 ### `make kernelversion`
@@ -567,3 +571,34 @@ compilation terminated.
 ```
 
 Note there are multiple `compiler.h` files. The one I should copy is `tools/include/linux/compiler.h`, not `include/linux/compiler`. The `-I` options of the `gcc` command is the clue to solve the issue.
+
+## 2024-06-25 (Mon)
+
+Now I have to tackle the error "Compiler lacks asm-goto support." This error message is printed in `jammy/arch/x86/Makefile`:
+
+```makefile
+archprepare: checkbin
+checkbin:
+ifndef CONFIG_CC_HAS_ASM_GOTO
+	@echo Compiler lacks asm-goto support.
+	@exit 1
+endif
+```
+
+So I will need to figure out how `CONFIG_CC_HAS_ASM_GOTO` is defined. In the comparison project `ubuntu-kernel-jammy`, it's defined here:
+
+```
+debian.master/config/config.common.ubuntu:CONFIG_CC_HAS_ASM_GOTO=y
+```
+
+Probably I need to figure out how `debian.master/config/config.common.ubuntu` is included. Next clue: It looks like the build config is created at `jammy/debian/build/tools-perarch/.config` (but there is also `debian/tmp-headers/.config`), so I need to figure out how this `.config` is created. Perhaps I should check the build log. Next clue: It may have something to do with the following part of log (see the command `scripts/kconfig/conf`):
+
+```
+make -f ./scripts/Makefile.build obj=scripts/kconfig defconfig
+scripts/kconfig/conf  --defconfig=arch/x86/configs/x86_64_defconfig Kconfig
+#
+# configuration written to .config
+#
+make[1]: Leaving directory '/lab/learn-linux-kernel/jammy/debian/build/tools-perarch'
+mv /lab/learn-linux-kernel/jammy/debian/build/tools-perarch/.config /lab/learn-linux-kernel/jammy/debian/build/tools-perarch/.config.old
+```
