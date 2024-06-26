@@ -168,7 +168,39 @@ endif
 
 ## 6. Noticeable files
 
-### 6.1 syscalls
+### `init/Kconfig`
+
+The `Kconfig` files (not only `init/Kconfig` but also the `Kconfig` files that are found in many sub-folders) define the configuration options available when building the kernel, including their dependencies, default values, and help text. Specifically, `init/Kconfig` handles the configuration options related to the kernel initialization and general setup. It includes options that control basic kernel features, startup settings, and various system initialization parameters.
+
+A `Kconfig` file is written in a specific syntax used by the kernel's configuration tools (e.g., `make menuconfig`, `make xconfig`). The structure typically includes:
+- Menu entries: Groups of related configuration options.
+- Config entries: Individual configuration options.
+- Dependencies: Conditions under which certain options are available.
+- Help text: Descriptions of what each option does.
+
+The `source` statements in `init/Kconfig` is used to include other `Kconfig` files into the current configuration hierarchy. This mechanism allows the kernel's configuration system to be modular and organized, making it easier to manage and navigate the numerous configuration options available in the Linux kernel.
+
+Also note that some configuration items call external scripts to determine their values. For example:
+
+```
+config CC_HAS_ASM_GOTO
+    def_bool $(success,$(srctree)/scripts/gcc-goto.sh $(CC))
+```
+
+- `def_bool` is used to set the default value of the boolean configuration option.
+- `$(success,...)` is a special macro that evaluates the command within the parentheses and returns `true` (1) if the command succeeds (i.e., exits with a status code of 0), and `false` (0) otherwise.
+
+### Compiler feature detection scripts
+
+Several shell scripts are called in `init/Kconfig` (or the other `Kconfig` files that `init/Kconfig` includes) to check if the used compiler has certain features. To find such scripts, search `/scripts/` in all `Kconfig` files:
+- `scripts/cc-can-link.sh`
+- `scripts/gcc-goto.sh`
+- `scripts/gcc-x86_64-has-stack-protector.sh`
+- `scripts/gcc-x86_32-has-stack-protector.sh`
+
+`Kconfig` also calls some other scripts. Search `/scripts/` in all `Kconfig` files to find them all.
+
+### syscalls
 
 The system call tables are in `jammy/arch/x86/entry/syscalls`:
 - `syscall_32.tbl`, needed by 'arch/x86/include/generated/uapi/asm/unistd_32.h'
@@ -190,7 +222,7 @@ The build produced the following header files (paths are relative to `debian/tmp
   sh /lab/learn-linux-kernel/jammy/scripts/syscalltbl.sh --abis common,64 /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/syscalls_64.h
 ```
 
-### 6.2 `jammy/scripts/basic/fixdep.c`
+### `jammy/scripts/basic/fixdep.c`
 
 The comment in `fixdep.c` explains the purpose of this tool:
 
@@ -602,3 +634,12 @@ scripts/kconfig/conf  --defconfig=arch/x86/configs/x86_64_defconfig Kconfig
 make[1]: Leaving directory '/lab/learn-linux-kernel/jammy/debian/build/tools-perarch'
 mv /lab/learn-linux-kernel/jammy/debian/build/tools-perarch/.config /lab/learn-linux-kernel/jammy/debian/build/tools-perarch/.config.old
 ```
+
+Eventually, I figured `CONFIG_CC_HAS_ASM_GOTO` is set in `init/Kconfig`:
+
+```
+config CC_HAS_ASM_GOTO
+	def_bool $(success,$(srctree)/scripts/gcc-goto.sh $(CC))
+```
+
+So I should have copied `scripts/gcc-goto.sh` into the source folder. The `init/Kconfig` file uses several other scripts and I should check them as well. See the section above about `init/Kconfig`.
