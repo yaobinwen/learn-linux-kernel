@@ -222,7 +222,33 @@ The build produced the following header files (paths are relative to `debian/tmp
   sh /lab/learn-linux-kernel/jammy/scripts/syscalltbl.sh --abis common,64 /lab/learn-linux-kernel/jammy/arch/x86/entry/syscalls/syscall_64.tbl arch/x86/include/generated/asm/syscalls_64.h
 ```
 
-### `jammy/scripts/basic/fixdep.c`
+### `include/linux/compiler-version.h`
+
+This is all the file has:
+
+```c
+#ifdef  __LINUX_COMPILER_VERSION_H
+#error "Please do not include <linux/compiler-version.h>. This is done by the build system."
+#endif
+#define __LINUX_COMPILER_VERSION_H
+```
+
+### `include/linux/compiler_types.h`
+
+This file defines various macros and attributes that are used to interact with and extend the capabilities of different compilers. This file helps ensure compatibility and optimization across different compiler versions and types, providing a standardized way to use compiler-specific features and attributes in the kernel code.
+
+This file includes the following header files:
+- `<linux/compiler_attributes.h>`
+- `<linux/compiler-clang.h>`
+- `<linux/compiler-intel.h>`
+- `<linux/compiler-gcc.h>`
+- `<asm/compiler.h>`
+
+### `include/linux/kconfig.h`
+
+This file provides macros and functions related to the kernel configuration system, serving as an interface for accessing and manipulating configuration options that are defined through the `Kconfig` system and set during the kernel build process.
+
+### `scripts/basic/fixdep.c`
 
 The comment in `fixdep.c` explains the purpose of this tool:
 
@@ -408,6 +434,8 @@ gcc -Wp,-MMD,scripts/.asn1_compiler.d -Wall -Wmissing-prototypes -Wstrict-protot
 ### `scripts/extract-cert.c`
 
 (TODO)
+
+### `scripts/mod`
 
 ## 2024-05-11 (Sat)
 
