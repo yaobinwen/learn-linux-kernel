@@ -248,6 +248,18 @@ This file includes the following header files:
 
 This file provides macros and functions related to the kernel configuration system, serving as an interface for accessing and manipulating configuration options that are defined through the `Kconfig` system and set during the kernel build process.
 
+### `include/uapi`
+
+This folder contains user-space API (UAPI) headers which refers to the interfaces and data structures that the kernel exposes to user-space programs.
+- These headers are intended to be included in user-space programs. They define the API for communication between the kernel and user-space, ensuring that user-space applications can make system calls, use ioctl commands, and interact with kernel subsystems.
+- These headers are designed to maintain **backward compatibility**. This ensures that user-space applications can continue to work with newer kernel versions without needing modifications.
+- The folder contains sub-folders and headers for various kernel subsystems, such as networking, filesystems, device drivers, etc. Each subsystem exposes its specific API to user-space through these headers.
+
+For example:
+- `include/uapi/linux/`: Contains headers related to general kernel APIs, networking, filesystems, and more.
+- `include/uapi/asm-generic/`: Contains architecture-independent headers that are shared across different hardware architectures.
+- `include/uapi/asm/`: Contains architecture-specific headers for different hardware platforms (e.g., x86, ARM).
+
 ### `scripts/basic/fixdep.c`
 
 The comment in `fixdep.c` explains the purpose of this tool:
@@ -436,6 +448,12 @@ gcc -Wp,-MMD,scripts/.asn1_compiler.d -Wall -Wmissing-prototypes -Wstrict-protot
 (TODO)
 
 ### `scripts/mod`
+
+The `gcc` command is as follows:
+
+```
+gcc -Wp,-MMD,scripts/mod/.devicetable-offsets.s.d -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/11/include -I./arch/x86/include -I./arch/x86/include/generated -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=2048 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fomit-frame-pointer -fno-stack-clash-protection -fno-inline-functions-called-once -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -Wno-alloc-size-larger-than -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned -DKBUILD_MODFILE='"scripts/mod/devicetable-offsets"' -DKBUILD_BASENAME='"devicetable_offsets"' -DKBUILD_MODNAME='"devicetable_offsets"' -D__KBUILD_MODNAME=kmod_devicetable_offsets -fverbose-asm -S -o scripts/mod/devicetable-offsets.s scripts/mod/devicetable-offsets.c
+```
 
 ## 2024-05-11 (Sat)
 
