@@ -1294,6 +1294,8 @@ archprepare: outputmakefile archheaders archscripts scripts include/config/kerne
 	include/generated/autoconf.h remove-stale-files
 
 prepare0: archprepare
+	@echo [ywen][2024-06-28] Q=${Q}
+	@echo [ywen][2024-06-28] MAKE=${MAKE}
 	$(Q)$(MAKE) $(build)=scripts/mod
 	$(Q)$(MAKE) $(build)=.
 
