@@ -354,6 +354,21 @@ The source files are under `jammy/tools/power/cpupower`. `cpupower` is a command
 - Inspect CPU Information: Retrieve details about the CPU, including supported frequencies, governors, and power states.
 - Set Power Policies: Configure power management policies to balance performance and power usage according to the system's needs.
 
+### `include/asm-generic/int-ll64.h`
+
+This file defines the following data types:
+
+```c
+typedef __s8  s8;
+typedef __u8  u8;
+typedef __s16 s16;
+typedef __u16 u16;
+typedef __s32 s32;
+typedef __u32 u32;
+typedef __s64 s64;
+typedef __u64 u64;
+```
+
 ### `include/linux`
 
 On 2024-06-16, I needed to add the file `include/linux/circ_buf.h`. Then it occurred to me that `include/linux` probably has all the interface header files for Linux.
@@ -447,12 +462,169 @@ gcc -Wp,-MMD,scripts/.asn1_compiler.d -Wall -Wmissing-prototypes -Wstrict-protot
 
 (TODO)
 
-### `scripts/mod`
+### `scripts/Kbuild.include`
 
-The `gcc` command is as follows:
+This is a common include file used by various Makefiles throughout the kernel build system. It contains a collection of definitions, macros, and helper functions that streamline and standardize the build process. For example:
+- Common variables:
 
 ```
-gcc -Wp,-MMD,scripts/mod/.devicetable-offsets.s.d -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/11/include -I./arch/x86/include -I./arch/x86/include/generated -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=2048 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fomit-frame-pointer -fno-stack-clash-protection -fno-inline-functions-called-once -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -Wno-alloc-size-larger-than -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned -DKBUILD_MODFILE='"scripts/mod/devicetable-offsets"' -DKBUILD_BASENAME='"devicetable_offsets"' -DKBUILD_MODNAME='"devicetable_offsets"' -D__KBUILD_MODNAME=kmod_devicetable_offsets -fverbose-asm -S -o scripts/mod/devicetable-offsets.s scripts/mod/devicetable-offsets.c
+# Convenient variables
+comma   := ,
+quote   := "
+squote  := '
+...
+```
+
+- Helper macros:
+
+```
+###
+# Name of target with a '.' as filename prefix. foo/bar.o => foo/.bar.o
+dot-target = $(dir $@).$(notdir $@)
+```
+
+- Shorthand notations:
+
+```
+###
+# Shorthand for $(Q)$(MAKE) -f scripts/Makefile.build obj=
+# Usage:
+# $(Q)$(MAKE) $(build)=dir
+build := -f $(srctree)/scripts/Makefile.build obj
+```
+
+#### The `build` shorthand notation
+
+Search "$(Q)$(MAKE) $(build)=" and you will find a lot of such uses in `jammy/Makefile`:
+
+```make
+scripts_basic:
+	$(Q)$(MAKE) $(build)=scripts/basic
+
+config: outputmakefile scripts_basic FORCE
+	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+
+prepare0: archprepare
+	$(Q)$(MAKE) $(build)=scripts/mod
+	$(Q)$(MAKE) $(build)=.
+```
+
+The commands get expanded to the full command. For example, `$(Q)$(MAKE) $(build)=scripts/mod` is expanded to as `make -f ./scripts/Makefile.build obj=scripts/mod`.
+
+This is also where `scripts/Makefile.build` is used.
+
+### `scripts/Makefile.build`
+
+This file is used to define the rules and dependencies for building individual files and modules within the kernel. It is included by other Makefiles in the kernel source tree to standardize and simplify the build process. For example:
+
+- Building individual files:
+  - It defines how to compile source files (`.c`, `.S`, etc.) into object files (`.o`).
+- Handling dependencies:
+  - It specifies dependencies between source files and headers to ensure that changes are properly tracked, and only the necessary parts are rebuilt.
+- Module compilation:
+  - It provides rules for compiling and linking kernel modules. Modules are typically built from one or more source files and need to be linked into a single loadable module.
+- Optimization and debugging flags:
+  - It sets the appropriate compiler and linker flags for optimization, debugging, and other build options.
+
+### `scripts/mod`
+
+The building of this part of code is triggered by the following section in `Makefile`:
+
+```makefile
+prepare0: archprepare
+	$(Q)$(MAKE) $(build)=scripts/mod
+	$(Q)$(MAKE) $(build)=.
+```
+
+The command `$(Q)$(MAKE) $(build)=scripts/mod` is expanded to `make -f ./scripts/Makefile.build obj=scripts/mod`.
+
+The expanded `gcc` command is as follows:
+
+```
+make -f ./scripts/Makefile.build obj=scripts/mod
+  gcc -Wp,-MMD,scripts/mod/.devicetable-offsets.s.d -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/11/include -I./arch/x86/include -I./arch/x86/include/generated -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=2048 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fomit-frame-pointer -fno-stack-clash-protection -fno-inline-functions-called-once -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -Wno-alloc-size-larger-than -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned -DKBUILD_MODFILE='"scripts/mod/devicetable-offsets"' -DKBUILD_BASENAME='"devicetable_offsets"' -DKBUILD_MODNAME='"devicetable_offsets"' -D__KBUILD_MODNAME=kmod_devicetable_offsets -fverbose-asm -S -o scripts/mod/devicetable-offsets.s scripts/mod/devicetable-offsets.c
+```
+
+The order of header file inclusion is:
+- `-I./arch/x86/include`
+- `-I./arch/x86/include/generated`
+- `-I./include`
+- `-I./arch/x86/include/uapi`
+- `-I./arch/x86/include/generated/uapi`
+- `-I./include/uapi`
+- `-I./include/generated/uapi`
+- `-I./ubuntu/include`
+
+On 2024-06-29, I successfully compiled `scripts/mod` but received the following warnings and will need to investigate if they matter:
+
+```
+In file included from ./arch/x86/include/asm/string.h:5,
+                 from ./include/linux/string.h:20,
+                 from ./include/linux/uuid.h:12,
+                 from ./include/linux/mod_devicetable.h:13,
+                 from scripts/mod/devicetable-offsets.c:3:
+./arch/x86/include/asm/string_64.h:14:14: warning: conflicting types for built-in function 'memcpy'; expected 'void *(void *, const void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   14 | extern void *memcpy(void *to, const void *from, size_t len);
+      |              ^~~~~~
+./arch/x86/include/asm/string_64.h:7:1: note: 'memcpy' is declared in header '<string.h>'
+    6 | #include <linux/jump_label.h>
+  +++ |+#include <string.h>
+    7 |
+./arch/x86/include/asm/string_64.h:18:7: warning: conflicting types for built-in function 'memset'; expected 'void *(void *, int,  long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   18 | void *memset(void *s, int c, size_t n);
+      |       ^~~~~~
+./arch/x86/include/asm/string_64.h:18:7: note: 'memset' is declared in header '<string.h>'
+./arch/x86/include/asm/string_64.h:58:7: warning: conflicting types for built-in function 'memmove'; expected 'void *(void *, const void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   58 | void *memmove(void *dest, const void *src, size_t count);
+      |       ^~~~~~~
+./arch/x86/include/asm/string_64.h:58:7: note: 'memmove' is declared in header '<string.h>'
+./arch/x86/include/asm/string_64.h:61:5: warning: conflicting types for built-in function 'memcmp'; expected 'int(const void *, const void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   61 | int memcmp(const void *cs, const void *ct, size_t count);
+      |     ^~~~~~
+./arch/x86/include/asm/string_64.h:61:5: note: 'memcmp' is declared in header '<string.h>'
+./arch/x86/include/asm/string_64.h:62:8: warning: conflicting types for built-in function 'strlen'; expected 'long unsigned int(const char *)' [-Wbuiltin-declaration-mismatch]
+   62 | size_t strlen(const char *s);
+      |        ^~~~~~
+./arch/x86/include/asm/string_64.h:62:8: note: 'strlen' is declared in header '<string.h>'
+In file included from ./include/linux/uuid.h:12,
+                 from ./include/linux/mod_devicetable.h:13,
+                 from scripts/mod/devicetable-offsets.c:3:
+./include/linux/string.h:26:15: warning: conflicting types for built-in function 'strncpy'; expected 'char *(char *, const char *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   26 | extern char * strncpy(char *,const char *, __kernel_size_t);
+      |               ^~~~~~~
+./include/linux/string.h:21:1: note: 'strncpy' is declared in header '<string.h>'
+   20 | #include <asm/string.h>
+  +++ |+#include <string.h>
+   21 |
+./include/linux/string.h:42:15: warning: conflicting types for built-in function 'strncat'; expected 'char *(char *, const char *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   42 | extern char * strncat(char *, const char *, __kernel_size_t);
+      |               ^~~~~~~
+./include/linux/string.h:42:15: note: 'strncat' is declared in header '<string.h>'
+./include/linux/string.h:51:12: warning: conflicting types for built-in function 'strncmp'; expected 'int(const char *, const char *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   51 | extern int strncmp(const char *,const char *,__kernel_size_t);
+      |            ^~~~~~~
+./include/linux/string.h:51:12: note: 'strncmp' is declared in header '<string.h>'
+./include/linux/string.h:57:12: warning: conflicting types for built-in function 'strncasecmp'; expected 'int(const char *, const char *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   57 | extern int strncasecmp(const char *s1, const char *s2, size_t n);
+      |            ^~~~~~~~~~~
+./include/linux/string.h:91:24: warning: conflicting types for built-in function 'strnlen'; expected 'long unsigned int(const char *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+   91 | extern __kernel_size_t strnlen(const char *,__kernel_size_t);
+      |                        ^~~~~~~
+./include/linux/string.h:100:24: warning: conflicting types for built-in function 'strspn'; expected 'long unsigned int(const char *, const char *)' [-Wbuiltin-declaration-mismatch]
+  100 | extern __kernel_size_t strspn(const char *,const char *);
+      |                        ^~~~~~
+./include/linux/string.h:100:24: note: 'strspn' is declared in header '<string.h>'
+./include/linux/string.h:103:24: warning: conflicting types for built-in function 'strcspn'; expected 'long unsigned int(const char *, const char *)' [-Wbuiltin-declaration-mismatch]
+  103 | extern __kernel_size_t strcspn(const char *,const char *);
+      |                        ^~~~~~~
+./include/linux/string.h:103:24: note: 'strcspn' is declared in header '<string.h>'
+./include/linux/string.h:159:12: warning: conflicting types for built-in function 'bcmp'; expected 'int(const void *, const void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+  159 | extern int bcmp(const void *,const void *,__kernel_size_t);
+      |            ^~~~
+./include/linux/string.h:162:15: warning: conflicting types for built-in function 'memchr'; expected 'void *(const void *, int,  long unsigned int)' [-Wbuiltin-declaration-mismatch]
+  162 | extern void * memchr(const void *,int,__kernel_size_t);
+      |               ^~~~~~
+./include/linux/string.h:162:15: note: 'memchr' is declared in header '<string.h>'
 ```
 
 ## 2024-05-11 (Sat)
@@ -689,3 +861,6 @@ config CC_HAS_ASM_GOTO
 ```
 
 So I should have copied `scripts/gcc-goto.sh` into the source folder. The `init/Kconfig` file uses several other scripts and I should check them as well. See the section above about `init/Kconfig`.
+
+## 2024-06-28 (Fri)
+
