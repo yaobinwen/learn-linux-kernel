@@ -1,0 +1,42 @@
+#!/bin/sh
+
+set -e
+
+_usage() {
+cat <<__EOF__
+Usage: $0 <TARGET> [TARGET, ...]
+
+TARGET      The target to be built. Can specify multiple targets and they
+            will be built one by one.
+__EOF__
+}
+
+_print_divider() {
+    local LENGTH
+    LENGTH="$1"
+
+    printf -- "=%.0s" $(seq 1 $LENGTH)
+    echo
+}
+
+test $# -gt 0 || {
+    _usage
+    exit 1
+}
+
+echo "$@"
+echo "Going to build the following targets:"
+for target in "$@"; do
+    echo "- $target"
+done
+
+rm -vf build.log
+
+for target in "$@"; do
+    _print_divider 80 | tee -a build.log
+    echo "building target: $target" | tee -a build.log
+    echo LANG=C fakeroot debian/rules "$target" V=1 | tee -a build.log
+    _print_divider 80 | tee -a build.log
+
+    LANG=C fakeroot debian/rules "$target" V=1 2>&1 | tee -a build.log
+done
