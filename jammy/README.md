@@ -52,6 +52,69 @@ gcc -Wp,-MMD,scripts/basic/.fixdep.d -Wall -Wmissing-prototypes -Wstrict-prototy
 
 The `-I` only includes `./scripts/basic`, so it doesn't look like that the compiler is able to find those header files in the Linux source tree, so I guess the Linux API header files and library files must be installed as a pre-condition in order to compile the code.
 
+### Header file resolution: the `-H` option
+
+I can add `-H` to the `c_flags` and `cpp_flags` in `scripts/Makefile.lib` so `gcc` will print the path of the selected header files:
+
+```make
+c_flags        = -Wp,-MMD,$(depfile) $(NOSTDINC_FLAGS) -H $(LINUXINCLUDE)     \
+		 -include $(srctree)/include/linux/compiler_types.h       \
+		 $(_c_flags) $(modkern_cflags)                           \
+		 $(basename_flags) $(modname_flags)
+
+# ...
+
+cpp_flags      = -Wp,-MMD,$(depfile) $(NOSTDINC_FLAGS) -H $(LINUXINCLUDE)     \
+		 $(_cpp_flags)
+```
+
+The example output of building `scripts/mod` (see the related section below):
+
+```
+  gcc -Wp,-MMD,scripts/mod/.devicetable-offsets.s.d -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/11/include -H -I./arch/x86/include -I./arch/x86/include/generated -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=2048 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fomit-frame-pointer -fno-stack-clash-protection -fno-inline-functions-called-once -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -Wno-alloc-size-larger-than -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned -DKBUILD_MODFILE='"scripts/mod/devicetable-offsets"' -DKBUILD_BASENAME='"devicetable_offsets"' -DKBUILD_MODNAME='"devicetable_offsets"' -D__KBUILD_MODNAME=kmod_devicetable_offsets -fverbose-asm -S -o scripts/mod/devicetable-offsets.s scripts/mod/devicetable-offsets.c
+. ./include/linux/kbuild.h
+. ./include/linux/mod_devicetable.h
+.. ./include/linux/types.h
+... ./include/uapi/linux/types.h
+.... ./arch/x86/include/generated/uapi/asm/types.h
+..... ./include/uapi/asm-generic/types.h
+...... ./include/asm-generic/int-ll64.h
+....... ./include/uapi/asm-generic/int-ll64.h
+........ ./arch/x86/include/generated/uapi/asm/bitsperlong.h
+......... ./include/asm-generic/bitsperlong.h
+.......... ./include/uapi/asm-generic/bitsperlong.h
+.... ./include/uapi/linux/posix_types.h
+..... ./include/linux/stddef.h
+...... ./include/uapi/linux/stddef.h
+....... ./include/linux/compiler_types.h
+..... ./arch/x86/include/generated/uapi/asm/posix_types.h
+...... ./include/uapi/asm-generic/posix_types.h
+....... ./arch/x86/include/generated/uapi/asm/bitsperlong.h
+.. ./include/linux/uuid.h
+... ./include/uapi/linux/uuid.h
+... ./include/linux/string.h
+.... ./include/linux/compiler.h
+..... ./arch/x86/include/generated/asm/rwonce.h
+...... ./include/asm-generic/rwonce.h
+....... ./include/linux/kasan-checks.h
+....... ./include/linux/kcsan-checks.h
+.... ./include/linux/errno.h
+..... ./include/uapi/linux/errno.h
+...... ./arch/x86/include/generated/uapi/asm/errno.h
+....... ./include/uapi/asm-generic/errno.h
+........ ./include/uapi/asm-generic/errno-base.h
+.... ./include/linux/stdarg.h
+.... ./include/uapi/linux/string.h
+.... ./arch/x86/include/asm/string.h
+..... ./arch/x86/include/asm/string_64.h
+...... ./include/linux/jump_label.h
+....... ./arch/x86/include/asm/jump_label.h
+........ ./arch/x86/include/asm/asm.h
+......... ./include/linux/stringify.h
+......... ./arch/x86/include/asm/extable_fixup_types.h
+........ ./arch/x86/include/asm/nops.h
+```
+
 ### TODOs:
 - [ ] `./arch/x86/tools/relocs.*`
 - [ ] `./scripts/unifdef.c`
@@ -555,9 +618,51 @@ The order of header file inclusion is:
 - `-I./include/generated/uapi`
 - `-I./ubuntu/include`
 
-On 2024-06-29, I successfully compiled `scripts/mod` but received the following warnings and will need to investigate if they matter:
+On 2024-06-29, I successfully compiled `scripts/mod` but received the following warnings:
 
 ```
+gcc -Wp,-MMD,scripts/mod/.devicetable-offsets.s.d -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/11/include -H -I./arch/x86/include -I./arch/x86/include/generated -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=2048 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fomit-frame-pointer -fno-stack-clash-protection -fno-inline-functions-called-once -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -Wno-alloc-size-larger-than -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned -DKBUILD_MODFILE='"scripts/mod/devicetable-offsets"' -DKBUILD_BASENAME='"devicetable_offsets"' -DKBUILD_MODNAME='"devicetable_offsets"' -D__KBUILD_MODNAME=kmod_devicetable_offsets -fverbose-asm -S -o scripts/mod/devicetable-offsets.s scripts/mod/devicetable-offsets.c
+. ./include/linux/kbuild.h
+. ./include/linux/mod_devicetable.h
+.. ./include/linux/types.h
+... ./include/uapi/linux/types.h
+.... ./arch/x86/include/generated/uapi/asm/types.h
+..... ./include/uapi/asm-generic/types.h
+...... ./include/asm-generic/int-ll64.h
+....... ./include/uapi/asm-generic/int-ll64.h
+........ ./arch/x86/include/generated/uapi/asm/bitsperlong.h
+......... ./include/asm-generic/bitsperlong.h
+.......... ./include/uapi/asm-generic/bitsperlong.h
+.... ./include/uapi/linux/posix_types.h
+..... ./include/linux/stddef.h
+...... ./include/uapi/linux/stddef.h
+....... ./include/linux/compiler_types.h
+..... ./arch/x86/include/generated/uapi/asm/posix_types.h
+...... ./include/uapi/asm-generic/posix_types.h
+....... ./arch/x86/include/generated/uapi/asm/bitsperlong.h
+.. ./include/linux/uuid.h
+... ./include/uapi/linux/uuid.h
+... ./include/linux/string.h
+.... ./include/linux/compiler.h
+..... ./arch/x86/include/generated/asm/rwonce.h
+...... ./include/asm-generic/rwonce.h
+....... ./include/linux/kasan-checks.h
+....... ./include/linux/kcsan-checks.h
+.... ./include/linux/errno.h
+..... ./include/uapi/linux/errno.h
+...... ./arch/x86/include/generated/uapi/asm/errno.h
+....... ./include/uapi/asm-generic/errno.h
+........ ./include/uapi/asm-generic/errno-base.h
+.... ./include/linux/stdarg.h
+.... ./include/uapi/linux/string.h
+.... ./arch/x86/include/asm/string.h
+..... ./arch/x86/include/asm/string_64.h
+...... ./include/linux/jump_label.h
+....... ./arch/x86/include/asm/jump_label.h
+........ ./arch/x86/include/asm/asm.h
+......... ./include/linux/stringify.h
+......... ./arch/x86/include/asm/extable_fixup_types.h
+........ ./arch/x86/include/asm/nops.h
 In file included from ./arch/x86/include/asm/string.h:5,
                  from ./include/linux/string.h:20,
                  from ./include/linux/uuid.h:12,
@@ -625,7 +730,56 @@ In file included from ./include/linux/uuid.h:12,
   162 | extern void * memchr(const void *,int,__kernel_size_t);
       |               ^~~~~~
 ./include/linux/string.h:162:15: note: 'memchr' is declared in header '<string.h>'
+Multiple include guards may be useful for:
+././include/linux/compiler-version.h
+./arch/x86/include/asm/string.h
+./arch/x86/include/generated/asm/rwonce.h
+./arch/x86/include/generated/uapi/asm/errno.h
+./arch/x86/include/generated/uapi/asm/posix_types.h
+./arch/x86/include/generated/uapi/asm/types.h
+./include/generated/autoconf.h
+./include/linux/compiler-gcc.h
+./include/uapi/linux/errno.h
 ```
+
+As an effort to figure out the cause of these warnings, I added three `#pragma message` directives:
+- In `arch/x86/include/asm/string_64.h` which uses `size_t` for the 3rd parameter, and `size_t` is also the type that's considered conflicting with the built-in function:
+
+```c
+#define __HAVE_ARCH_MEMCPY 1
+#pragma message("[ywen] __HAVE_ARCH_MEMCPY is defined here")
+extern void *memcpy(void *to, const void *from, size_t len);
+```
+
+- As the warning messages say, the built-in functions are defined in some "string.h". Among all the code I have so far (as of 2024-06-30), the most possible file is `include/linux/string.h` because it has the declaration `extern void *memcpy(void *, const void *, __kernel_size_t);` where `__kernel_size_t` is expanded to `long unsigned int` which matches the type that's mentioned in the warning messages:
+
+```c
+#ifndef __HAVE_ARCH_MEMCPY
+extern void *memcpy(void *, const void *, __kernel_size_t);
+#pragma message "[ywen] Defining/declaring memcpy"
+#elif
+#pragma message "[ywen] __HAVE_ARCH_MEMCPY is already defined"
+#endif
+```
+
+However, a clean build resulted in the following build logs regarding these `#pragma message` directives:
+
+```
+./arch/x86/include/asm/string_64.h:14:9: note: '#pragma message: [ywen] __HAVE_ARCH_MEMCPY is defined here'
+   14 | #pragma message("[ywen] __HAVE_ARCH_MEMCPY is defined here")
+      |         ^~~~~~~
+...
+./include/linux/string.h:150:9: note: '#pragma message: [ywen] __HAVE_ARCH_MEMCPY is already defined'
+  150 | #pragma message "[ywen] __HAVE_ARCH_MEMCPY is already defined"
+      |         ^~~~~~~
+```
+
+Therefore, the declaration `extern void *memcpy(void *to, const void *from, size_t len);` in `arch/x86/include/asm/string_64.h` was used and this declaration's 3rd parameter was `size_t` which conflicted with the built-in function's 3rd parameter type `long unsigned int`. The declaration `extern void *memcpy(void *, const void *, __kernel_size_t);` in `include/linux/string.h`, although it matches the built-in function's 3rd parameter type because `__kernel_size_t` was an alias of `long unsigned int`, it was not used.
+
+So I had to say I was confused as of 2024-06-24:
+- On one hand, I couldn't find the source file that has the built-in function that uses `long unsigned int` as the type of the 3rd parameter. So I thought this built-in function came from the standard header file `string.h` in the C standard library.
+- On the other hand, the use of the `gcc` option `-nostdinc` excludes the standard inclusion folders, so the standard C header file `string.h` should not be included.
+- As a result, I couldn't figure out where this "built-in function type" came from. So my current decision was to ignore these warnings and move on.
 
 ## 2024-05-11 (Sat)
 
@@ -862,5 +1016,17 @@ config CC_HAS_ASM_GOTO
 
 So I should have copied `scripts/gcc-goto.sh` into the source folder. The `init/Kconfig` file uses several other scripts and I should check them as well. See the section above about `init/Kconfig`.
 
-## 2024-06-28 (Fri)
+## 2024-06-30 (Sun)
 
+See the section `scripts/mod` about the warnings about conflicting built-in function type. As of today, my current decision was to ignore those warnings and move on because I couldn't figure out the cause after some efforts.
+
+The next build error I needed to work on was as follows:
+
+```
+mkdir -p ./tools
+make LDFLAGS= MAKEFLAGS=" " O=/lab/learn-linux-kernel/jammy/debian/build/tools-perarch subdir=tools -C ./tools/ objtool
+make[2]: *** No rule to make target 'objtool'.  Stop.
+make[1]: *** [Makefile:1454: tools/objtool] Error 2
+make[1]: Leaving directory '/lab/learn-linux-kernel/jammy/debian/build/tools-perarch'
+make: *** [debian/rules.d/2-binary-arch.mk:744: /lab/learn-linux-kernel/jammy/debian/stamps/stamp-build-perarch] Error 2
+```
